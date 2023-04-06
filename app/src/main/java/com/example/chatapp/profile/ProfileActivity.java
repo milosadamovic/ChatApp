@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MenuItem;
@@ -55,7 +56,7 @@ public class ProfileActivity extends AppCompatActivity {
     private ImageView ivProfile;
 
     private FirebaseUser firebaseUser;
-    private DatabaseReference databaseReference, drRequests;
+    private DatabaseReference drUsers, drRequests, drTokens;
     private StorageReference fileStorage;
     private Uri localFileUri, serverFileUri;
     private FirebaseAuth firebaseAuth;
@@ -106,18 +107,37 @@ public class ProfileActivity extends AppCompatActivity {
         /** METODA 1 */
 
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+
+
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        databaseReference = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
+        drUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
         drRequests = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid());
+        drTokens = FirebaseDatabase.getInstance().getReference().child(NodeNames.TOKEN).child(currentUser.getUid());
+
 
        if(firebaseAuth != null)
        {
-           drRequests.removeEventListener(RequestsFragment.valueEventListener);
-           databaseReference.removeEventListener(FindFriendsFragment.valueEventListener);
-           firebaseAuth.signOut();
-           startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
+           drTokens.setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
+               @Override
+               public void onComplete(@NonNull Task<Void> task) {
 
-           finish();
+                   if(task.isSuccessful())
+                   {
+                       drRequests.removeEventListener(RequestsFragment.valueEventListener);
+                       drUsers.removeEventListener(FindFriendsFragment.valueEventListener);
+                       firebaseAuth.signOut();
+                       startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
+
+                       finish();
+                   }
+                   else
+                   {
+                       Toast.makeText(ProfileActivity.this, getString(R.string.something_went_wrong, task.getException()), Toast.LENGTH_LONG);
+                   }
+
+               }
+           });
+
        }
 
         /** METODA 2*/
@@ -208,12 +228,12 @@ public class ProfileActivity extends AppCompatActivity {
                 if(task.isSuccessful())
                 {
                     String userID = firebaseUser.getUid();
-                    databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+                    drUsers = FirebaseDatabase.getInstance().getReference().child("Users");
 
                     HashMap<String,String> hashMap = new HashMap<>();
                     hashMap.put(NodeNames.PHOTO, "");
 
-                    databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             Toast.makeText(ProfileActivity.this, R.string.photo_removed_successfully, Toast.LENGTH_LONG).show();
@@ -314,7 +334,7 @@ public class ProfileActivity extends AppCompatActivity {
                                             if(task.isSuccessful())
                                             {
                                                 String userID = firebaseUser.getUid();
-                                                databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+                                                drUsers = FirebaseDatabase.getInstance().getReference().child("Users");
 
                                                 HashMap<String,String> hashMap = new HashMap<>();
                                                 hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
@@ -322,7 +342,7 @@ public class ProfileActivity extends AppCompatActivity {
                                                 hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                                                 hashMap.put(NodeNames.ONLINE, "true");
 
-                                                databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
                                                     public void onComplete(@NonNull Task<Void> task) {
                                                         finish();
@@ -372,7 +392,7 @@ public class ProfileActivity extends AppCompatActivity {
                                                 public void onComplete(@NonNull Task<Void> task) {
                                                     if (task.isSuccessful()) {
                                                         String userID = firebaseUser.getUid();
-                                                        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+                                                        drUsers = FirebaseDatabase.getInstance().getReference().child("Users");
 
                                                         HashMap<String, String> hashMap = new HashMap<>();
                                                         hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
@@ -380,7 +400,7 @@ public class ProfileActivity extends AppCompatActivity {
                                                         hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                                                         hashMap.put(NodeNames.ONLINE, "true");
 
-                                                        databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                                             @Override
                                                             public void onComplete(@NonNull Task<Void> task) {
                                                                 finish();
@@ -480,7 +500,7 @@ public class ProfileActivity extends AppCompatActivity {
                 if(task.isSuccessful())
                 {
                     String userID = firebaseUser.getUid();
-                    databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+                    drUsers = FirebaseDatabase.getInstance().getReference().child("Users");
 
                     HashMap<String,String> hashMap = new HashMap<>();
                     hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
@@ -490,7 +510,7 @@ public class ProfileActivity extends AppCompatActivity {
                     if(serverFileUri != null) hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                     else hashMap.put(NodeNames.PHOTO, "");
 
-                    databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             finish();

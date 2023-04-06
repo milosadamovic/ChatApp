@@ -47,7 +47,7 @@ public class SignupActivity extends AppCompatActivity {
     private ImageView ivProfile;
 
     private FirebaseUser firebaseUser;
-    private DatabaseReference databaseReference;
+    private DatabaseReference databaseReference, drCounter;
     private StorageReference fileStorage;
     private Uri localFileUri, serverFileUri;
     private View progressBar;
@@ -66,6 +66,8 @@ public class SignupActivity extends AppCompatActivity {
 
         fileStorage = FirebaseStorage.getInstance().getReference(); // root folder of file storage
         progressBar = findViewById(R.id.progressBar);
+
+        drCounter = FirebaseDatabase.getInstance().getReference().child("Counter");
 
     }
 
@@ -152,6 +154,7 @@ public class SignupActivity extends AppCompatActivity {
                                         hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                                         hashMap.put(NodeNames.ONLINE, "true");
                                         hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
+                                      //  hashMap.put(NodeNames.NOTIFICATION_ID);
 
                                         databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override

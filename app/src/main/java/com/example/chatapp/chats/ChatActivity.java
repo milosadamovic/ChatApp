@@ -28,7 +28,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -62,6 +64,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
@@ -79,11 +82,12 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private ImageView ivSend, ivAttachment, ivProfile;
-    private TextView tvUserName;
+    private TextView tvUserName, tvUserStatus;
     private EditText etMessage;
     private DatabaseReference mRootRef;
     private FirebaseAuth firebaseAuth;
     private String currentUserId, chatUserId;
+    public static String openChatUserId;
 
     private RecyclerView rvMessages;
     private SwipeRefreshLayout srlMessages;
@@ -111,19 +115,23 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        Log.d("ChatActivity", "onCreate() called");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
         ActionBar actionBar = getSupportActionBar();
+
 
         if(actionBar != null)
         {
             actionBar.setTitle("");
             ViewGroup actionBarLayout = (ViewGroup) getLayoutInflater().inflate(R.layout.custom_action_bar, null);
 
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeButtonEnabled(true);
+            /*actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);*/
             actionBar.setElevation(0);
+
 
             actionBar.setCustomView(actionBarLayout);
             actionBar.setDisplayOptions(actionBar.getDisplayOptions() | ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -132,12 +140,14 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
         ivProfile = findViewById(R.id.ivProfile2);
         tvUserName = findViewById(R.id.tvUserName);
+        tvUserStatus = findViewById(R.id.tvUserStatus);
 
         ivSend = findViewById(R.id.ivSend);
         ivAttachment = findViewById(R.id.ivAttachment);
         etMessage = findViewById(R.id.etMessage);
         llProgress = findViewById(R.id.llProgress);
 
+        etMessage.requestFocus();
         ivSend.setOnClickListener(this);
         ivAttachment.setOnClickListener(this);
 
@@ -148,6 +158,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         if(getIntent().hasExtra(Extras.USER_KEY))
         {
             chatUserId = getIntent().getStringExtra(Extras.USER_KEY);
+            openChatUserId = chatUserId;
         }
 
         if(getIntent().hasExtra(Extras.USER_NAME))
@@ -165,7 +176,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         if(!TextUtils.isEmpty(photoName))
         {
             StorageReference photoRef = FirebaseStorage.getInstance().getReference().child(Constants.IMAGES_FOLDER).child(photoName);
-            Log.d("PHOTO6", photoRef.toString());
 
             photoRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                 @Override
@@ -189,6 +199,9 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         rvMessages.setAdapter(messagesAdapter);
 
         loadMessages();
+
+        mRootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId).child(NodeNames.UNREAD_COUNT).setValue(0);
+
         rvMessages.scrollToPosition(messageList.size() - 1);
         srlMessages.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -229,13 +242,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 File localFile = new File(localFilePath);
 
                 StorageReference newFileRef = rootRef.child(folder).child(newFileName);
-                Log.d("PUTANJA", folder + "/" + oldFileName);
 
                 rootRef.child(folder).child(oldFileName).getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
 
-                        Log.d("RADILI", "HELLO");
                         UploadTask uploadTask = newFileRef.putFile(Uri.fromFile(localFile));
                         uploadProgress(uploadTask, newFileRef, newMessageId, messageType);
                     }
@@ -248,6 +259,83 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 });
             }
         }
+
+        DatabaseReference databaseReferenceUsers = mRootRef.child(NodeNames.USERS).child(chatUserId);
+        databaseReferenceUsers.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                String status = "";
+
+                if(snapshot.child(NodeNames.ONLINE).getValue() != null)
+                    status = snapshot.child(NodeNames.ONLINE).getValue().toString();
+
+                if(status.equals("true"))
+                    tvUserStatus.setText(Constants.STATUS_ONLINE);
+                else
+                    tvUserStatus.setText(Constants.STATUS_OFFLINE);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        etMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+                DatabaseReference currentUserRef = mRootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId);
+                if(s.toString().matches(""))
+                {
+                    currentUserRef.child(NodeNames.TYPING).setValue(Constants.TYPING_STOPPED);
+                }
+                else
+                {
+                    currentUserRef.child(NodeNames.TYPING).setValue(Constants.TYPING_STARTED);
+                }
+
+                DatabaseReference chatUserRef = mRootRef.child(NodeNames.CHATS).child(chatUserId).child(currentUserId);
+
+                chatUserRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        if(snapshot.child(NodeNames.TYPING).getValue() != null)
+                        {
+                            String typingStatus = snapshot.child(NodeNames.TYPING).getValue().toString();
+
+                            if(typingStatus.equals(Constants.TYPING_STARTED))
+                                tvUserStatus.setText(Constants.STATUS_TYPING);
+                            else
+                                tvUserStatus.setText(Constants.STATUS_ONLINE);
+                        }
+
+
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+            }
+        });
+
+        Util.cancelNotifications(this);
 
     }
 
@@ -295,7 +383,10 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                             else if(msgType.equals(Constants.MESSAGE_TYPE_VIDEO))
                                 title = "New Video";
 
-                            Util.sendNotification(ChatActivity.this, title, msg, chatUserId);
+                            Util.sendNotification(ChatActivity.this, title, msg, chatUserId, currentUserId);
+
+                            String lastMessage = !title.equals("New Message") ? title : msg;
+                            Util.updateChatDetails(ChatActivity.this, currentUserId, chatUserId,lastMessage);
                         }
                     }
                 });
@@ -829,8 +920,18 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         intent.putExtra(Extras.MESSAGE_TYPE, selectedMessageType);
 
         ActivityCompat.startActivityForResult(this, intent, REQUEST_CODE_FORWARD_MESSAGE, null);
-
-
     }
 
+    @Override
+    public void onBackPressed() {
+        mRootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId).child(NodeNames.UNREAD_COUNT).setValue(0);
+        super.onBackPressed();
+    }
+
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        Util.cancelNotifications(this);
+        Log.d("ChatActivity:", "onUserInteraction() called");
+    }
 }

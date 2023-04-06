@@ -1,12 +1,17 @@
 package com.example.chatapp.common;
 
+import android.app.ActivityManager;
+import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -25,6 +30,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
@@ -32,6 +38,7 @@ import org.json.JSONObject;
 import org.w3c.dom.Node;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Util {
@@ -77,20 +84,21 @@ public class Util {
     }
 
 
-
-    public static void sendNotification(Context context, String title, String message, String userId)
+    public static void sendNotification(Context context, String title, String message, String chatUserId, String userId)
     {
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference databaseReference = rootRef.child(NodeNames.TOKEN).child(userId);
 
-        Log.d("HOCE","hello");
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference databaseReference = rootRef.child(NodeNames.TOKEN).child(chatUserId);
+
+
+
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
                 if(snapshot.child(NodeNames.DEVICE_TOKEN).getValue() != null)
                 {
-                    Log.d("NECE","hello");
+
                     String deviceToken = snapshot.child(NodeNames.DEVICE_TOKEN).getValue().toString();
 
                     JSONObject notification = new JSONObject();
@@ -99,6 +107,7 @@ public class Util {
                     try {
                         notificationData.put(Constants.NOTIFICATION_TITLE,title);
                         notificationData.put(Constants.NOTIFICATION_MESSAGE,message);
+                        notificationData.put(Constants.NOTIFICATION_ID,userId);
 
                         notification.put(Constants.NOTIFICATION_TO, deviceToken);
                         notification.put(Constants.NOTIFICATION_DATA, notificationData);
@@ -107,7 +116,6 @@ public class Util {
                         String fcmApiUrl = "https://fcm.googleapis.com/fcm/send";
                         String contentType = "application/json";
 
-                        //Log.d("OVDE", "EEEEEEEJ");
                         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                                 (Request.Method.POST, fcmApiUrl, notification, new Response.Listener<JSONObject>() {
 
@@ -122,7 +130,6 @@ public class Util {
                                     @Override
                                     public void onErrorResponse(VolleyError error) {
 
-                                        Log.d("FEJL VOLLEY", error.getMessage());
                                         Toast.makeText(context, context.getString(R.string.failed_to_send_notification, error.getMessage()), Toast.LENGTH_SHORT).show();
 
                                     }
@@ -147,7 +154,6 @@ public class Util {
 
                     } catch (JSONException e) {
 
-                        Log.d("FEJL JSON", e.getMessage());
                         Toast.makeText(context, context.getString(R.string.failed_to_send_notification, e.getMessage()), Toast.LENGTH_SHORT).show();
                     }
 
@@ -158,57 +164,109 @@ public class Util {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-                Log.d("FEJL DB", error.getMessage());
                 Toast.makeText(context, context.getString(R.string.failed_to_send_notification, error.getMessage()), Toast.LENGTH_SHORT).show();
 
             }
         });
     }
 
-    /*  PRIMER
 
-    private void sendNotification() {
-    // Create the FCM notification data
-    JSONObject notification = new JSONObject();
-    try {
-        notification.put("title", "My Notification Title");
-        notification.put("body", "My Notification Message");
-    } catch (JSONException e) {
-        e.printStackTrace();
-    }
+    public static void updateChatDetails(Context context, String currentUserId, String chatUserId, String lastMessage)
+    {
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference chatRef = rootRef.child(NodeNames.CHATS).child(chatUserId).child(currentUserId);
 
-    // Create the FCM request body
-    JSONObject requestBody = new JSONObject();
-    try {
-        requestBody.put("notification", notification);
-        requestBody.put("to", "/topics/my_topic");
-    } catch (JSONException e) {
-        e.printStackTrace();
-    }
+        chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-    // Create the FCM request
-    JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
-            "https://fcm.googleapis.com/fcm/send", requestBody,
-            response -> {
-                Log.d(TAG, "Notification sent successfully");
-            },
-            error -> {
-                Log.e(TAG, "Error sending notification: " + error.getMessage());
+                String currentCount = "0";
+                if(snapshot.child(NodeNames.UNREAD_COUNT).getValue() != null)
+                    currentCount = snapshot.child(NodeNames.UNREAD_COUNT).getValue().toString();
+
+                Map chatMap = new HashMap();
+                chatMap.put(NodeNames.TIME_STAMP, ServerValue.TIMESTAMP);
+                chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount)+1);
+                chatMap.put(NodeNames.LAST_MESSAGE, lastMessage);
+                chatMap.put(NodeNames.LAST_MESSAGE_TIME, ServerValue.TIMESTAMP);
+
+                Map chatUserMap = new HashMap();
+                chatUserMap.put(NodeNames.CHATS + "/" + chatUserId + "/" + currentUserId, chatMap);
+
+                rootRef.updateChildren(chatUserMap, new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+
+                        if(error != null)
+                            Toast.makeText(context, context.getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             }
-    ) {
-        @Override
-        public Map<String, String> getHeaders() throws AuthFailureError {
-            // Set the FCM authorization header
-            Map<String, String> headers = new HashMap<>();
-            headers.put("Authorization", "key=YOUR_SERVER_KEY");
-            headers.put("Content-Type", "application/json");
-            return headers;
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+                Toast.makeText(context, context.getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
+    }
+
+
+    public static String getTimeAgo(long time)
+    {
+        final int SECOND_MILLIS = 1000;
+        final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
+        final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
+        final int DAY_MILLIS = 24 * HOUR_MILLIS;
+
+        //time *= 1000;
+
+        long now = System.currentTimeMillis();
+        if(time > now || time <= 0) return "";
+
+        final long diff = now - time;
+
+       if(diff < MINUTE_MILLIS) return "just now";
+       else if(diff < 2 * MINUTE_MILLIS) return "minute ago";
+       else if (diff < 59 * MINUTE_MILLIS) return diff/MINUTE_MILLIS + " minutes ago";
+       else if (diff < 90 * MINUTE_MILLIS) return "an hour ago";
+       else if (diff < 24 * HOUR_MILLIS) return diff/HOUR_MILLIS + " hours ago";
+       else if (diff < 48 * HOUR_MILLIS) return "yesterday";
+       else return diff/DAY_MILLIS + " days ago";
+
+
+    }
+
+    public static void cancelNotifications(Context context)
+    {
+
+        if(context != null) {
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            StatusBarNotification[] activeNotifications = notificationManager.getActiveNotifications();
+
+            if (activeNotifications.length > 0)
+                notificationManager.cancelAll();
         }
-    };
+    }
 
-    // Add the request to the Volley request queue
-    Volley.newRequestQueue(this).add(request);
-}*/
+    public static boolean isActivityRunning(Class activityClass, Context context) {
+        ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.AppTask> tasks = activityManager.getAppTasks();
 
+        for (ActivityManager.AppTask task : tasks) {
+            ActivityManager.RecentTaskInfo taskInfo = task.getTaskInfo();
+            ComponentName componentName = taskInfo.topActivity;
+
+            if (componentName.getClassName().equals(activityClass.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 }

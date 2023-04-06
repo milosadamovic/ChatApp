@@ -105,6 +105,8 @@ public class LoginActivity extends AppCompatActivity {
     // TODO AUTOMATIC LOGIN, IF THE USER IS LOGGED IN HE DOESNT HAVE TO LOGIN AGAIN
     @Override
     protected void onStart() {
+
+        Log.d("LoginActivity", "onStart() called");
         super.onStart();
 
         firebaseAuth = FirebaseAuth.getInstance();

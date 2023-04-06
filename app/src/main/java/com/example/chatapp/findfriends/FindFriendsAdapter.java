@@ -121,7 +121,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                                            String title = "New Friend Request";
                                            String message = "Friend request from " + currentUser.getDisplayName();
-                                          // Util.sendNotification(context, title, message, userId);
+                                           Util.sendNotification(context, title, message, userId, currentUser.getUid());
 
                                            holder.btnSendRequest.setVisibility(View.GONE);
                                            holder.pbRequest.setVisibility(View.GONE);

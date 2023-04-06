@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.chatapp.chats.ChatFragment;
+import com.example.chatapp.common.NodeNames;
 import com.example.chatapp.databinding.ActivityMainBinding;
 import com.example.chatapp.findfriends.FindFriendsFragment;
 import com.example.chatapp.profile.ProfileActivity;
@@ -26,6 +27,8 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,10 +52,17 @@ public class MainActivity extends AppCompatActivity {
         new TabLayoutMediator(tabLayout, viewPager,(tab,position) -> tab.setText("OBJECT " + position)
         ).attach();*/
 
+        Log.d("MainActivity", "onCreate() called");
+
         setContentView(R.layout.activity_main);
 
         tabLayout = findViewById(R.id.tabMain);
         viewPager = findViewById(R.id.vpMain);
+
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        DatabaseReference databaseReferenceUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS).child(firebaseAuth.getCurrentUser().getUid());
+        databaseReferenceUsers.child(NodeNames.ONLINE).setValue(true);
+        databaseReferenceUsers.child(NodeNames.ONLINE).onDisconnect().setValue(false);
 
         setViewPager();
 

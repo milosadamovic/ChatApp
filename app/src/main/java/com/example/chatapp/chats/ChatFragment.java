@@ -1,5 +1,7 @@
 package com.example.chatapp.chats;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -19,6 +21,7 @@ import android.widget.Toast;
 
 import com.example.chatapp.R;
 import com.example.chatapp.common.NodeNames;
+import com.example.chatapp.common.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -47,6 +50,9 @@ public class ChatFragment extends Fragment {
     private ChildEventListener childEventListener;
     private Query query;
 
+    private List<String> userIds;
+    NotificationManager notificationManager;
+
 
     public ChatFragment() {
         // Required empty public constructor
@@ -56,6 +62,9 @@ public class ChatFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Log.d("ChatFragment", "onCreateView() called");
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_chat, container, false);
     }
@@ -63,11 +72,16 @@ public class ChatFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+
+        Log.d("ChatFragment", "onViewCreated() called");
+
         super.onViewCreated(view, savedInstanceState);
 
         rvChatList = view.findViewById(R.id.rvChats);
         tvEmptyChatList = view.findViewById(R.id.tvEmptyChatList);
 
+        userIds = new ArrayList<>();
         chatListModelList = new ArrayList<>();
         chatListAdapter = new ChatListAdapter(getActivity(), chatListModelList);
 
@@ -88,18 +102,19 @@ public class ChatFragment extends Fragment {
 
         query = drChats.orderByChild(NodeNames.TIME_STAMP);
 
+
         childEventListener = new ChildEventListener() {
 
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
                     updateList(snapshot, true, snapshot.getKey());
-                    Log.d("SNAPKEY", snapshot.getKey());
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
+                    updateList(snapshot, false, snapshot.getKey());
             }
 
             @Override
@@ -132,9 +147,16 @@ public class ChatFragment extends Fragment {
              tvEmptyChatList.setVisibility(View.GONE);
              final String  lastMessage, lastMessageTime ,unreadCount;
 
-             lastMessage = "";
-             lastMessageTime = "";
-             unreadCount = "";
+             if(snapshot.child(NodeNames.LAST_MESSAGE).getValue() != null)
+                 lastMessage = snapshot.child(NodeNames.LAST_MESSAGE).getValue().toString();
+             else lastMessage = "";
+
+             if(snapshot.child(NodeNames.LAST_MESSAGE_TIME).getValue() != null)
+                 lastMessageTime = snapshot.child(NodeNames.LAST_MESSAGE_TIME).getValue().toString();
+             else lastMessageTime = "";
+
+
+             unreadCount = snapshot.child(NodeNames.UNREAD_COUNT).getValue() == null ? "0" : snapshot.child(NodeNames.UNREAD_COUNT).getValue().toString();
 
              drUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
                  @Override
@@ -146,8 +168,18 @@ public class ChatFragment extends Fragment {
 
                      ChatListModel chatListModel = new ChatListModel(userId, fullName, photoName, unreadCount, lastMessage, lastMessageTime);
 
+                     if(isNew)
+                     {
+                         chatListModelList.add(chatListModel);
+                         userIds.add(userId);
+                     }
 
-                     chatListModelList.add(chatListModel);
+                     else
+                     {
+                        int indexOfClickedUser = userIds.indexOf(userId);
+                        chatListModelList.set(indexOfClickedUser, chatListModel);
+                     }
+
                      chatListAdapter.notifyDataSetChanged();
                  }
 
@@ -159,8 +191,21 @@ public class ChatFragment extends Fragment {
                  }
              });
 
+    }
 
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("ChatFragment", "onResume() called");
+        Util.cancelNotifications(getContext());
+    }
+
+
+  /**  @Override
+    public void onStart() {
+        super.onStart();
+        Log.d("ChatFragment", "onStart() called");
     }
 
     @Override
@@ -168,4 +213,24 @@ public class ChatFragment extends Fragment {
         super.onDestroy();
         query.removeEventListener(childEventListener);
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("ChatFragment", "onPause() called");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d("ChatFragment", "onStop() called");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d("ChatFragment", "onDestroyView() called");
+    }
+    */
+
 }

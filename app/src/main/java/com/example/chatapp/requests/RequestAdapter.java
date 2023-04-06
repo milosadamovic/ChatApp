@@ -2,6 +2,7 @@ package com.example.chatapp.requests;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -118,9 +119,10 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                                             if(task.isSuccessful())
                                                             {
 
+                                                                Log.d("PRIHVACEN", "OK");
                                                                 String title = "Friend Request Accepted";
                                                                 String message = "Friend request accepted by " + currentUser.getDisplayName();
-                                                            //    Util.sendNotification(context, title, message, userId);
+                                                                Util.sendNotification(context, title, message, userId,currentUser.getUid());
 
                                                                 holder.pbDecision.setVisibility(View.GONE);
                                                                 holder.btnDenyRequest.setVisibility(View.VISIBLE);
@@ -177,9 +179,10 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                     if(task.isSuccessful())
                                     {
 
+
                                         String title = "Friend Request Denied";
                                         String message = "Friend request denied by " + currentUser.getDisplayName();
-                                      //  Util.sendNotification(context, title, message, userId);
+                                        Util.sendNotification(context, title, message, userId, currentUser.getUid());
 
                                         holder.pbDecision.setVisibility(View.GONE);
                                         holder.btnDenyRequest.setVisibility(View.VISIBLE);
