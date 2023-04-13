@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.example.chatapp.R;
 import com.example.chatapp.common.Constants;
 import com.example.chatapp.common.NodeNames;
+import com.example.chatapp.common.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -115,9 +116,8 @@ public class FindFriendsFragment extends Fragment {
 
                                 if(snapshot.exists())
                                 {
-                                    Log.d("SNAPSHOT", "SNAP : " + snapshot);
                                     String requestType = snapshot.child(NodeNames.REQUEST_TYPE).getValue().toString();
-                                    Log.d("SNAPTRUE", fullName + " : " + requestType);
+
                                     if(requestType.equals(Constants.REQUEST_STATUS_SENT))
                                     {
                                         if(!userId.equals(currentUser.getUid()))
@@ -164,5 +164,12 @@ public class FindFriendsFragment extends Fragment {
         query.addValueEventListener(valueEventListener);
 
 
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REPLYID);
     }
 }

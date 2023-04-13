@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import com.example.chatapp.R;
 import com.example.chatapp.common.Constants;
 import com.example.chatapp.common.NodeNames;
+import com.example.chatapp.common.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -54,8 +56,11 @@ public class RequestsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Log.d("RequestFragment", "onCreateView() called");
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_requests, container, false);
+
     }
 
     @Override
@@ -135,7 +140,29 @@ public class RequestsFragment extends Fragment {
         };
         drRequests.addValueEventListener(valueEventListener);
 
+    }
 
+    @Override
+    public void onStart() {
+        Log.d("RequestFragment", "onStart() called");
+        super.onStart();
+    }
 
+    @Override
+    public void onResume() {
+        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REQUESTID);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        Log.d("RequestFragment", "onPause() called");
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        Log.d("RequestFragment", "onStop() called");
+        super.onStop();
     }
 }

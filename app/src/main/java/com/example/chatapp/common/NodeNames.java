@@ -13,6 +13,7 @@ public class NodeNames {
     public static final String EMAIL = "email";
     public static final String ONLINE = "online";
     public static final String PHOTO = "photo";
+    public static final String PRIVATE_ID = "private_id";
 
     public static final String REQUEST_TYPE = "request_type";
 
@@ -29,7 +30,6 @@ public class NodeNames {
     public static final String MESSAGE_TIME = "messageTime";
 
     public static final String DEVICE_TOKEN = "device_token";
-
 
 
 }

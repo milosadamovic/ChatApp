@@ -18,7 +18,9 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.chatapp.chats.ChatFragment;
+import com.example.chatapp.common.Constants;
 import com.example.chatapp.common.NodeNames;
+import com.example.chatapp.common.Util;
 import com.example.chatapp.databinding.ActivityMainBinding;
 import com.example.chatapp.findfriends.FindFriendsFragment;
 import com.example.chatapp.profile.ProfileActivity;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
+    private int tabPosition;
 
 
     @Override
@@ -118,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
+                tabPosition = tab.getPosition();
             }
 
             @Override
@@ -168,5 +172,40 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        /**REQUESTS TAB*/
+        if(tabPosition == 1)
+            Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_REQUESTID);
+        /**FIND TAB*/
+        else if(tabPosition == 0 || tabPosition == 2)
+            Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_REPLYID);
+
+    }
+
+    public void onStart() {
+        Log.d("MainActivity", "onStart() called");
+        super.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        Log.d("MainActivity", "onResume() called");
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        Log.d("MainActivity", "onPause() called");
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        Log.d("MainActivity", "onStop() called");
+        super.onStop();
+    }
 
 }

@@ -30,12 +30,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Node;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,6 +61,8 @@ public class Util {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
 
+        Log.d("Util", "updateDeviceToken() called");
+
         if(currentUser != null)
         {
             DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
@@ -72,6 +75,7 @@ public class Util {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
 
+                    Log.d("Util", "updateDeviceToken() called");
                     if (!task.isSuccessful())
                     {
                         Toast.makeText(context, context.getString(R.string.failed_to_save_device_token, task.getException()), Toast.LENGTH_SHORT).show();
@@ -84,12 +88,13 @@ public class Util {
     }
 
 
-    public static void sendNotification(Context context, String title, String message, String chatUserId, String userId)
+    public static void sendNotification(Context context, String title, String message, String chatUserId, String userId, String notificationType)
     {
+
+        Log.d("Util", "sendNotification() called ");
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference databaseReference = rootRef.child(NodeNames.TOKEN).child(chatUserId);
-
 
 
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -99,6 +104,7 @@ public class Util {
                 if(snapshot.child(NodeNames.DEVICE_TOKEN).getValue() != null)
                 {
 
+                    Log.d("Util", "sendNotification() called 2");
                     String deviceToken = snapshot.child(NodeNames.DEVICE_TOKEN).getValue().toString();
 
                     JSONObject notification = new JSONObject();
@@ -108,6 +114,7 @@ public class Util {
                         notificationData.put(Constants.NOTIFICATION_TITLE,title);
                         notificationData.put(Constants.NOTIFICATION_MESSAGE,message);
                         notificationData.put(Constants.NOTIFICATION_ID,userId);
+                        notificationData.put(Constants.NOTIFICATION_TYPE, notificationType);
 
                         notification.put(Constants.NOTIFICATION_TO, deviceToken);
                         notification.put(Constants.NOTIFICATION_DATA, notificationData);
@@ -122,6 +129,7 @@ public class Util {
                                     @Override
                                     public void onResponse(JSONObject response) {
 
+                                        Log.d("Util", "sendNotification() called 3");
                                         Toast.makeText(context, "Notification Sent", Toast.LENGTH_SHORT).show();
 
                                     }
@@ -241,7 +249,7 @@ public class Util {
 
     }
 
-    public static void cancelNotifications(Context context)
+    public static void cancelNotifications(Context context, String id)
     {
 
         if(context != null) {
@@ -249,7 +257,10 @@ public class Util {
             StatusBarNotification[] activeNotifications = notificationManager.getActiveNotifications();
 
             if (activeNotifications.length > 0)
-                notificationManager.cancelAll();
+            {
+                notificationManager.cancel(Integer.parseInt(id));
+            }
+
         }
     }
 
@@ -267,6 +278,50 @@ public class Util {
         }
 
         return false;
+    }
+
+
+
+    /**PRAVLJENJE PRIVATE_ID ZA SVAKOG USERA PRILIKOM PRIJAVLIVANJA I PRILIKOM UPDEJTOVANJA PROFILA*/
+    public static void incrementUserCounter(final String userId, final  OnGetDataListener listener) {
+
+
+        DatabaseReference drUserCounter = FirebaseDatabase.getInstance().getReference().child("UserCounter");
+        final DatabaseReference[] drUsers = {FirebaseDatabase.getInstance().getReference().child("Users")};
+
+        drUserCounter.child("userCounter").runTransaction(new Transaction.Handler() {
+            @NonNull
+            @Override
+            public Transaction.Result doTransaction(@NonNull MutableData mutableData) {
+                Long currentValue = mutableData.getValue(Long.class);
+
+                if (currentValue == null) {
+                    mutableData.setValue(1);
+                } else {
+                    mutableData.setValue(currentValue + 1);
+                }
+                return Transaction.success(mutableData);
+            }
+
+            @Override
+            public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+                if (databaseError != null)  Log.d("Util", "incrementUserCounter:onComplete: " + databaseError.getMessage());
+                else if(b) {
+                    HashMap<String,Object> hashMap = new HashMap<>();
+                    hashMap.put(NodeNames.PRIVATE_ID, dataSnapshot.getValue());
+
+                    drUsers[0].child(userId).updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful())
+                                Log.d("Util","PRIVATE_ID Successfully added to User");
+                        }
+                    });
+                }
+                else Log.d("Util", "Transaction aborted");
+            }
+        });
+
     }
 
 }

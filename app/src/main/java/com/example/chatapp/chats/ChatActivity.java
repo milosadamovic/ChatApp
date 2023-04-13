@@ -112,6 +112,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout llProgress;
     private String userName, photoName;
 
+    public static boolean isResumed = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -335,7 +337,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        Util.cancelNotifications(this);
+        Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_MESSAGEID);
 
     }
 
@@ -383,7 +385,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                             else if(msgType.equals(Constants.MESSAGE_TYPE_VIDEO))
                                 title = "New Video";
 
-                            Util.sendNotification(ChatActivity.this, title, msg, chatUserId, currentUserId);
+                            Util.sendNotification(ChatActivity.this, title, msg, chatUserId, currentUserId, Constants.NOTIFICATION_TYPE_MESSAGE);
 
                             String lastMessage = !title.equals("New Message") ? title : msg;
                             Util.updateChatDetails(ChatActivity.this, currentUserId, chatUserId,lastMessage);
@@ -928,10 +930,41 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         super.onBackPressed();
     }
 
-    @Override
+    /*@Override
     public void onUserInteraction() {
         super.onUserInteraction();
         Util.cancelNotifications(this);
         Log.d("ChatActivity:", "onUserInteraction() called");
+    }*/
+
+
+    public static boolean isActivityResumed() {
+        return isResumed;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d("ChatActivity:", "onStart() called");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("ChatActivity:", "onResume() called");
+        isResumed = true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("ChatActivity:", "onPause() called");
+        isResumed = false;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("ChatActivity:", "onStop() called");
     }
 }

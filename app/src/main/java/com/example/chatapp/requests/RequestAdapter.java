@@ -122,7 +122,8 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                                                 Log.d("PRIHVACEN", "OK");
                                                                 String title = "Friend Request Accepted";
                                                                 String message = "Friend request accepted by " + currentUser.getDisplayName();
-                                                                Util.sendNotification(context, title, message, userId,currentUser.getUid());
+
+                                                                Util.sendNotification(context, title, message, userId,currentUser.getUid(),Constants.NOTIFICATION_TYPE_REPLY);
 
                                                                 holder.pbDecision.setVisibility(View.GONE);
                                                                 holder.btnDenyRequest.setVisibility(View.VISIBLE);
@@ -143,10 +144,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                             });
                         }
                         else handleException(holder, task.getException());
-
-
-
-
                     }
                 });
 
@@ -165,7 +162,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
                 final String userId = requestModel.getUserId();
 
-                // DELETING A RECORD
+
                 drFriendRequest.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE).setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -182,7 +179,8 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
                                         String title = "Friend Request Denied";
                                         String message = "Friend request denied by " + currentUser.getDisplayName();
-                                        Util.sendNotification(context, title, message, userId, currentUser.getUid());
+
+                                        Util.sendNotification(context, title, message, userId, currentUser.getUid(), Constants.NOTIFICATION_TYPE_REPLY);
 
                                         holder.pbDecision.setVisibility(View.GONE);
                                         holder.btnDenyRequest.setVisibility(View.VISIBLE);

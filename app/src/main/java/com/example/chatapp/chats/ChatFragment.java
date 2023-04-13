@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.chatapp.R;
+import com.example.chatapp.common.Constants;
 import com.example.chatapp.common.NodeNames;
 import com.example.chatapp.common.Util;
 import com.google.firebase.auth.FirebaseAuth;
@@ -164,7 +165,9 @@ public class ChatFragment extends Fragment {
 
                      String fullName = snapshot.child(NodeNames.NAME).getValue() != null ? snapshot.child(NodeNames.NAME).getValue().toString() : "";
 
-                     String photoName = snapshot.child(NodeNames.PHOTO).getValue() != null ? userId + ".jpg" : "";
+                     String photoName = (snapshot.child(NodeNames.PHOTO).getValue()) != null ? userId + ".jpg" : "";
+
+                     Log.d("ChatFragment", "photoname = " + photoName);
 
                      ChatListModel chatListModel = new ChatListModel(userId, fullName, photoName, unreadCount, lastMessage, lastMessageTime);
 
@@ -198,7 +201,7 @@ public class ChatFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d("ChatFragment", "onResume() called");
-        Util.cancelNotifications(getContext());
+        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_MESSAGEID);
     }
 
 

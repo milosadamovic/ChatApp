@@ -5,6 +5,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -15,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.ImageView;
@@ -22,6 +24,8 @@ import android.widget.Toast;
 
 import com.example.chatapp.R;
 import com.example.chatapp.common.NodeNames;
+import com.example.chatapp.common.OnGetDataListener;
+import com.example.chatapp.common.Util;
 import com.example.chatapp.login.LoginActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -31,8 +35,12 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -47,7 +55,7 @@ public class SignupActivity extends AppCompatActivity {
     private ImageView ivProfile;
 
     private FirebaseUser firebaseUser;
-    private DatabaseReference databaseReference, drCounter;
+    private DatabaseReference databaseReference;
     private StorageReference fileStorage;
     private Uri localFileUri, serverFileUri;
     private View progressBar;
@@ -67,7 +75,7 @@ public class SignupActivity extends AppCompatActivity {
         fileStorage = FirebaseStorage.getInstance().getReference(); // root folder of file storage
         progressBar = findViewById(R.id.progressBar);
 
-        drCounter = FirebaseDatabase.getInstance().getReference().child("Counter");
+
 
     }
 
@@ -154,7 +162,17 @@ public class SignupActivity extends AppCompatActivity {
                                         hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                                         hashMap.put(NodeNames.ONLINE, "true");
                                         hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
-                                      //  hashMap.put(NodeNames.NOTIFICATION_ID);
+                                        Util.incrementUserCounter(userID, new OnGetDataListener() {
+                                            @Override
+                                            public void onSuccess(Object data) {
+                                                Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
+                                            }
+
+                                            @Override
+                                            public void onFailure(Exception exception) {
+                                                Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
+                                            }
+                                        });
 
                                         databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
@@ -203,6 +221,17 @@ public class SignupActivity extends AppCompatActivity {
                     hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                     hashMap.put(NodeNames.ONLINE, "true");
                     hashMap.put(NodeNames.PHOTO, "");
+                    Util.incrementUserCounter(userID, new OnGetDataListener() {
+                        @Override
+                        public void onSuccess(Object data) {
+                            Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
+                        }
+
+                        @Override
+                        public void onFailure(Exception exception) {
+                            Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
+                        }
+                    });
 
                     progressBar.setVisibility(View.VISIBLE);
 

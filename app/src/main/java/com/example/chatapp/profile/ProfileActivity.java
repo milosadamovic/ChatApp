@@ -27,6 +27,8 @@ import com.bumptech.glide.Glide;
 import com.example.chatapp.MainActivity;
 import com.example.chatapp.R;
 import com.example.chatapp.common.NodeNames;
+import com.example.chatapp.common.OnGetDataListener;
+import com.example.chatapp.common.Util;
 import com.example.chatapp.findfriends.FindFriendsFragment;
 import com.example.chatapp.login.LoginActivity;
 import com.example.chatapp.password.ChangePasswordActivity;
@@ -123,8 +125,8 @@ public class ProfileActivity extends AppCompatActivity {
 
                    if(task.isSuccessful())
                    {
-                       drRequests.removeEventListener(RequestsFragment.valueEventListener);
-                       drUsers.removeEventListener(FindFriendsFragment.valueEventListener);
+                       //drRequests.removeEventListener(RequestsFragment.valueEventListener);
+                       //drUsers.removeEventListener(FindFriendsFragment.valueEventListener);
                        firebaseAuth.signOut();
                        startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
 
@@ -341,6 +343,17 @@ public class ProfileActivity extends AppCompatActivity {
                                                 hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                                                 hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                                                 hashMap.put(NodeNames.ONLINE, "true");
+                                                Util.incrementUserCounter(userID, new OnGetDataListener() {
+                                                    @Override
+                                                    public void onSuccess(Object data) {
+                                                        Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
+                                                    }
+
+                                                    @Override
+                                                    public void onFailure(Exception exception) {
+                                                        Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
+                                                    }
+                                                });
 
                                                 drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
@@ -399,6 +412,17 @@ public class ProfileActivity extends AppCompatActivity {
                                                         hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                                                         hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                                                         hashMap.put(NodeNames.ONLINE, "true");
+                                                        Util.incrementUserCounter(userID, new OnGetDataListener() {
+                                                            @Override
+                                                            public void onSuccess(Object data) {
+                                                                Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
+                                                            }
+
+                                                            @Override
+                                                            public void onFailure(Exception exception) {
+                                                                Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
+                                                            }
+                                                        });
 
                                                         drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                                             @Override
@@ -506,6 +530,17 @@ public class ProfileActivity extends AppCompatActivity {
                     hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                     hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                     hashMap.put(NodeNames.ONLINE, "true");
+                    Util.incrementUserCounter(userID, new OnGetDataListener() {
+                        @Override
+                        public void onSuccess(Object data) {
+                            Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
+                        }
+
+                        @Override
+                        public void onFailure(Exception exception) {
+                            Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
+                        }
+                    });
 
                     if(serverFileUri != null) hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                     else hashMap.put(NodeNames.PHOTO, "");

@@ -74,6 +74,20 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         progressBar.setVisibility(View.GONE);
                         if (task.isSuccessful()) {
+                            FirebaseMessaging.getInstance().getToken()
+                                    .addOnCompleteListener(new OnCompleteListener<String>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<String> task) {
+                                            if (!task.isSuccessful()) {
+                                                Toast.makeText(LoginActivity.this, getString(R.string.failed_to_get_token, task.getException()), Toast.LENGTH_SHORT).show();
+                                                return;
+                                            }
+
+                                            String token = task.getResult();
+                                            Util.updateDeviceToken(LoginActivity.this, token);
+
+                                        }
+                                    });
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         } else {
@@ -116,6 +130,7 @@ public class LoginActivity extends AppCompatActivity {
         if(firebaseUser != null)
         {
 
+            /**NAKON REGISTRACIJE(SIGN-UP) MORAMO KREIRATI TOKEN*/
             FirebaseMessaging.getInstance().getToken()
                     .addOnCompleteListener(new OnCompleteListener<String>() {
                         @Override
