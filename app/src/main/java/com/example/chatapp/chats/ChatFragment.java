@@ -167,8 +167,6 @@ public class ChatFragment extends Fragment {
 
                      String photoName = (snapshot.child(NodeNames.PHOTO).getValue()) != null ? userId + ".jpg" : "";
 
-                     Log.d("ChatFragment", "photoname = " + photoName);
-
                      ChatListModel chatListModel = new ChatListModel(userId, fullName, photoName, unreadCount, lastMessage, lastMessageTime);
 
                      if(isNew)

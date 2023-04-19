@@ -33,6 +33,7 @@ import com.google.firebase.storage.StorageReference;
 
 import org.w3c.dom.Node;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.FindFriendsViewHolder> {
@@ -40,7 +41,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
     private Context context;
     private List<FindFriendsModel> findFriendsModelList;
 
-    private DatabaseReference friendRequestDatabase;
+    private DatabaseReference drFriendRequests, drUsers;
     private FirebaseUser currentUser;
     private String userId;
 
@@ -66,12 +67,11 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
            StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://chatapp-ca8cb.appspot.com");
            StorageReference mountRef = storageRef.child(Constants.IMAGES_FOLDER + "/" + friendsModel.getPhotoName());
            //StorageReference fileRef = FirebaseStorage.getInstance().getReference().child(Constants.IMAGES_FOLDER + "/" + friendsModel.getPhotoName());
-           Log.d("PHOTO4", mountRef.toString());
+
 
         mountRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                @Override
                public void onSuccess(Uri uri) {
-                   Log.d("PHOTO5", uri.toString());
                    Glide.with(context)
                             .load(uri)
                             .placeholder(R.drawable.default_profile)
@@ -80,7 +80,8 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                }
            });
 
-           friendRequestDatabase = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS);
+           drFriendRequests = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS);
+           drUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
            currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
            if(friendsModel.isRequestSent())
@@ -94,6 +95,8 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                holder.btnCancelRequest.setVisibility(View.GONE);
            }
 
+
+           /**PRE SLANJA ZAHTEVA TREBA PROVERITI DA LI JE KORISNIK KOJI SALJE ZAHTEV VEC PRIMIO ZAHTEV OD TOG KORISNIKA KOME SALJE ZAHTEV */
            holder.btnSendRequest.setOnClickListener(new View.OnClickListener() {
                @Override
                public void onClick(View view) {
@@ -103,14 +106,14 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                    userId = friendsModel.getUserId();
 
-                   friendRequestDatabase.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE)
+                   drFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE)
                            .setValue(Constants.REQUEST_STATUS_SENT).addOnCompleteListener(new OnCompleteListener<Void>() {
                        @Override
                        public void onComplete(@NonNull Task<Void> task) {
 
                            if(task.isSuccessful())
                            {
-                               friendRequestDatabase.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE)
+                               drFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE)
                                        .setValue(Constants.REQUEST_STATUS_RECEIVED).addOnCompleteListener(new OnCompleteListener<Void>() {
                                    @Override
                                    public void onComplete(@NonNull Task<Void> task) {
@@ -128,6 +131,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                                            holder.pbRequest.setVisibility(View.GONE);
                                            holder.btnCancelRequest.setVisibility(View.VISIBLE);
                                        }
+
                                        else
                                        {
                                            Toast.makeText(context, context.getString(R.string.failed_to_send_request, task.getException()),Toast.LENGTH_SHORT).show();
@@ -163,14 +167,14 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                 userId = friendsModel.getUserId();
 
-                friendRequestDatabase.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE)
+                drFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE)
                         .setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if(task.isSuccessful())
                         {
-                            friendRequestDatabase.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE)
+                            drFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE)
                                     .setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
@@ -181,6 +185,11 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                                         holder.btnSendRequest.setVisibility(View.VISIBLE);
                                         holder.pbRequest.setVisibility(View.GONE);
                                         holder.btnCancelRequest.setVisibility(View.GONE);
+
+
+                                        String title = "New Canceled Request";
+                                        String message = "Canceled request from " + currentUser.getDisplayName();
+                                        Util.sendNotification(context, title, message, userId, currentUser.getUid(),Constants.NOTIFICATION_TYPE_REQUEST_CANCELED);
                                     }
                                     else
                                     {

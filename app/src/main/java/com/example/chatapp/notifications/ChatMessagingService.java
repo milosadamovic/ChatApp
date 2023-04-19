@@ -19,15 +19,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.example.chatapp.MainActivity;
 import com.example.chatapp.R;
 import com.example.chatapp.chats.ChatActivity;
 import com.example.chatapp.common.Constants;
 import com.example.chatapp.common.Util;
+import com.example.chatapp.findfriends.FindFriendsFragment;
 import com.example.chatapp.login.LoginActivity;
+import com.example.chatapp.requests.RequestsFragment;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -45,7 +50,18 @@ public class ChatMessagingService extends FirebaseMessagingService {
 
 
     /**TODO PRVI KORAK
+     * KADA JEDAN KORISNIK POSALJE FRIEND REQUEST, KOD DRUGOG NA TABU FIND VISE NEMA KORISNIKA KOJI MU JE POSLAO ZAHTEV, ALI SE POJAVLJUJE U REQUESTIMA
+     * KADA KORISNIK KOJI JE POSLAO ZAHTEV CANCELUJE TAJ ZAHTEV, KOD DRUGOG SE OPET POJAVLJUJE TAJ KORISNIK NA TABU FIND, ALI GA NEMA NA TABU REQUESTS
+     * KADA KORISNIK KOJI JE PRIMIO ZAHTEV ODBIJE ILI PRIHVATI ZAHTEV, KORISNIK KOJI JE POSLAO ZAHTEV VISE NE MOZE DA CANCELUJE
      * REQUEST STATUS TREBA DA SE AZURIRA CIM DRUGI KORISNIK ODOBRI ILI ODBIJE ZAHTEV / ONEMOGUCITI DA NAKON PRIHVATANJA ZAHTEVA OD STRANE KORISNIKA, DRUGA STRANA MOZE DA OTKAZE ZAHTEV, JER SE NAKON PRIHVATANJA DODAJE TAJ USER U NODE CHAT
+     *
+     * GORNJI DEO RESEN, STARTOVANJEM INTENTA IZ KLASE CHATMESSAGINGSERVICE I IZ ONBACKPRESSED FUNKCIJE IZ CHAT ACTIVITIJA - TREBA RESITI SLANJE ISTE NOTIFIKACIJE 2 PUTA
+     *
+     *
+     *
+     *
+     *
+     *
      * PROFILNA SLIKA JEDNOG KORISNIKA PRELAZI NA DRUGOG U LISTI NA CHAT FRAGMENTU
      * ISPRAVITI DA NE MOGU PORUKE DA SE PROSLEDJUJU SAMOM SEBI
      * OMOGUCITI DA SE U DOPISIVANJU UVEK VIDI POSLEDNJA POSLATA PORUKA I POSLEDNJA PRIMLJENA PORUKA
@@ -54,7 +70,7 @@ public class ChatMessagingService extends FirebaseMessagingService {
 
     /**TODO DRUGI KORAK
      * NAKON PRVOG KORAKA PROVERITI :
-     *      KAKO NOTIFIKACIJE FUNKCIONISU BEZ DA IH KORISNIK DOZVOLI U PERMISSIONS
+     *      KAKO NOTIFIKACIJE FUNKCIONISU BEZ DA IH KORISNIK DOZVOLI U PERMISSIONS - NOTIFIKACIJE OBAVEZNO TRAZITI KAO PERMISSION OD KORISNIKA ZA RAD APLIKACIJE
      *      TESTIRANJE STATUS OFFLINE / ONLINE NE RADI KAKO TREBA
      *      TESTIRANJE STATUS TYPING... NE RADI KAKO TREBA
      *      PROBLEM KREIRANJA TOKENA (DA LI JE ZAISTA PROBLEM ?!)
@@ -89,6 +105,9 @@ public class ChatMessagingService extends FirebaseMessagingService {
         Log.d("ChatMessagingService", "onMessageReceived() - ChatActivity.openChatUserId = " + ChatActivity.openChatUserId);*/
 
 
+        Log.d("ChatMessagingService", "onMessageReceived() - notificationType: " + notificationType);
+
+
         /**AKO SE VEC NALAZIMO U CETU SA OSOBOM OD KOJE PRIMAMO NOTIFIKACIJU NECEMO PRIKAZATI NOTIFIKACIJU
          *  (NE MOZEMO SE NALAZITI U CETU SA OSOBOM KOJA NAM ODOBRAVA ILI ODBIJA REQUEST ILI KOJA NAM SALJE REQUEST)*/
         if(isChatActivityRunning && Objects.equals(userId, ChatActivity.openChatUserId) && ChatActivity.isActivityResumed()) {Log.d("ChatMessagingService", "onMessageReceived() - ChatActivity open"); return;}
@@ -98,17 +117,46 @@ public class ChatMessagingService extends FirebaseMessagingService {
                 String title = message.getData().get(Constants.NOTIFICATION_TITLE);
                 String msg = message.getData().get(Constants.NOTIFICATION_MESSAGE);
                 String notificationId = "";
+                int flag = 0;
 
                 /**PROVERAVAMO KOG JE TIPA NOTIFIKACIJA*/
-                if(Objects.equals(notificationType,Constants.NOTIFICATION_TYPE_REQUEST)) notificationId = Constants.NOTIFICATION_TYPE_REQUESTID;
-                if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_REPLY)) notificationId = Constants.NOTIFICATION_TYPE_REPLYID;
-                if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_MESSAGE)) notificationId = Constants.NOTIFICATION_TYPE_MESSAGEID;
+                if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_REPLY))
+                {
+                    notificationId = Constants.NOTIFICATION_TYPE_REPLYID;
+                    // intentChat = new Intent(this, RequestsFragment.class);
+                    flag = 1;
 
+                    Log.d("ChatMessagingService", "onMessageReceived() - notificationId: " + notificationId);
 
+                    // FindFriendsFragment.loadData(this);
+                }
+                else if(Objects.equals(notificationType,Constants.NOTIFICATION_TYPE_REQUEST))
+                {
+                    notificationId = Constants.NOTIFICATION_TYPE_REQUESTID;
+                   // intentChat = new Intent(this, FindFriendsFragment.class);
+                    flag = 2;
+
+                   // FindFriendsFragment.loadData(this);
+                }
+                else if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_REQUEST_CANCELED))
+                {
+                    notificationId = Constants.NOTIFICATION_TYPE_REQUESTID;
+                    Log.d("ChatMessagingService", "Notification CANCELLED");
+                    //intentChat = new Intent(this, LoginActivity.class);
+                    flag = 2;
+                }
+               else if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_MESSAGE))
+                {
+                    notificationId = Constants.NOTIFICATION_TYPE_MESSAGEID;
+                    flag = 0;
+                }
+                else
+                {
+                    flag = 0;
+                }
 
                 Intent intentChat = new Intent(this, LoginActivity.class);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intentChat, PendingIntent.FLAG_IMMUTABLE);
-
                 NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
@@ -146,7 +194,6 @@ public class ChatMessagingService extends FirebaseMessagingService {
                                         bigPictureStyle.bigPicture(resource);
                                         notificationBuilder.setStyle(bigPictureStyle);
                                         notificationManager.notify(Integer.parseInt(finalNotificationId), notificationBuilder.build());
-
                                     }
 
                                     @Override
@@ -159,9 +206,31 @@ public class ChatMessagingService extends FirebaseMessagingService {
                     } catch (Exception e) {
                         notificationBuilder.setContentText("New File Received");
                     }
-                } else {
+
+                    if(flag == 1 && !ChatActivity.isActivityResumed())
+                    {
+                        Intent intent = new Intent(this, LoginActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+
+                }
+
+                else
+                {
                     notificationBuilder.setContentText(msg);
                     notificationManager.notify(Integer.parseInt(notificationId), notificationBuilder.build());
+
+                    if(flag == 1 && !ChatActivity.isActivityResumed())
+                    {
+                        /**MainActivity.tabLayout.getTabAt(1).select();*/
+                        Intent intent = new Intent(this, LoginActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+
+
+
                 }
 
 

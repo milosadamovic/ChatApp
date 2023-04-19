@@ -7,7 +7,6 @@ public class NodeNames {
     public static final String CHATS = "Chats";
     public static final String MESSAGES = "Messages";
     public static final String TOKEN = "Tokens";
-    public static final String Counter = "Counter";
 
     public static final String NAME = "name";
     public static final String EMAIL = "email";
@@ -32,4 +31,6 @@ public class NodeNames {
     public static final String DEVICE_TOKEN = "device_token";
 
 
+    public static final String REQUEST_STATUS = "request_status";
+    public static final String REPLY_STATUS = "reply_status";
 }

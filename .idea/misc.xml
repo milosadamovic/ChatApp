@@ -38,7 +38,9 @@
         <entry key="app/src/main/res/layout/find_friends_layout.xml" value="0.36196581196581196" />
         <entry key="app/src/main/res/layout/fragment_chat.xml" value="0.36196581196581196" />
         <entry key="app/src/main/res/layout/fragment_find_friends.xml" value="0.36196581196581196" />
-        <entry key="app/src/main/res/layout/fragment_requests.xml" value="0.36196581196581196" />
+        <entry key="app/src/main/res/layout/fragment_first.xml" value="0.20427350427350427" />
+        <entry key="app/src/main/res/layout/fragment_requests.xml" value="0.33530106257378983" />
+        <entry key="app/src/main/res/layout/fragment_second.xml" value="0.20726495726495728" />
         <entry key="app/src/main/res/layout/friend_request_layout.xml" value="0.36196581196581196" />
         <entry key="app/src/main/res/layout/message_layout.xml" value="0.36196581196581196" />
         <entry key="app/src/main/res/layout/select_friend_layout.xml" value="0.36196581196581196" />

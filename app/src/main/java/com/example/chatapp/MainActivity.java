@@ -35,7 +35,7 @@ import com.google.firebase.database.FirebaseDatabase;
 public class MainActivity extends AppCompatActivity {
 
 
-    private TabLayout tabLayout;
+    public static TabLayout tabLayout;
     private ViewPager2 viewPager;
     private int tabPosition;
 
@@ -43,17 +43,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        /*ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());*/
-
-        //tabLayout = binding.tabMain;
-        //viewPager = binding.vpMain;
-
-       /* Adapter adapter = new Adapter(getSupportFragmentManager(), getLifecycle());
-        viewPager.setAdapter(adapter);
-        new TabLayoutMediator(tabLayout, viewPager,(tab,position) -> tab.setText("OBJECT " + position)
-        ).attach();*/
 
         Log.d("MainActivity", "onCreate() called");
 
@@ -177,11 +166,11 @@ public class MainActivity extends AppCompatActivity {
     public void onUserInteraction() {
         super.onUserInteraction();
         /**REQUESTS TAB*/
-        if(tabPosition == 1)
+       /* if(tabPosition == 1)
             Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_REQUESTID);
         /**FIND TAB*/
-        else if(tabPosition == 0 || tabPosition == 2)
-            Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_REPLYID);
+       /* else if(tabPosition == 2)
+            Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_REPLYID);*/
 
     }
 

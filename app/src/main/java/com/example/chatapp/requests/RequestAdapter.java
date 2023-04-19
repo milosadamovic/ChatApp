@@ -33,13 +33,14 @@ import com.google.firebase.storage.StorageReference;
 
 import org.w3c.dom.Node;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestViewHolder> {
 
     private Context context;
     private List<RequestModel> requestModelList;
-    private DatabaseReference drFriendRequest, drChats;
+    private DatabaseReference drFriendRequest, drChats, drUsers;
     private FirebaseUser currentUser;
 
 
@@ -57,6 +58,9 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
     @Override
     public void onBindViewHolder(@NonNull RequestAdapter.RequestViewHolder holder, int position) {
+
+
+        Log.d("RequestFragment - Adapter", "Hello from Request Adapter");
 
         RequestModel requestModel = requestModelList.get(position);
 
@@ -81,6 +85,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
         drFriendRequest = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS);
         drChats = FirebaseDatabase.getInstance().getReference().child(NodeNames.CHATS);
+        drUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
 
@@ -175,8 +180,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
                                     if(task.isSuccessful())
                                     {
-
-
                                         String title = "Friend Request Denied";
                                         String message = "Friend request denied by " + currentUser.getDisplayName();
 
@@ -186,7 +189,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                         holder.btnDenyRequest.setVisibility(View.VISIBLE);
                                         holder.btnAcceptRequest.setVisibility(View.VISIBLE);
                                         Toast.makeText(context,R.string.request_denied_successfully,Toast.LENGTH_SHORT).show();
-
                                     }
                                     else
                                     {
