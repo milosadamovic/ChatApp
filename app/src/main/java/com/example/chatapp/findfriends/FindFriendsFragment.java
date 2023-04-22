@@ -129,9 +129,8 @@ public class FindFriendsFragment extends Fragment {
 
                 findFriendsModelList.clear();
 
-                Log.d("FindFriendsFragment", "loadData called, list size: " + findFriendsModelList.size());
-
                 for (DataSnapshot s : snapshot.getChildren()) {
+
                     final String userId = s.getKey();
 
                     if (s.child(NodeNames.NAME).getValue() != null) {
@@ -149,16 +148,17 @@ public class FindFriendsFragment extends Fragment {
                                     String requestType = snapshot.child(NodeNames.REQUEST_TYPE).getValue().toString();
 
                                     if (requestType.equals(Constants.REQUEST_STATUS_SENT)) {
+
                                         if (!userId.equals(currentUser.getUid())) {
-                                            Log.d("FindFriendsFragment", "HELLO FROM REFRESH FROM FINISH");
                                             findFriendsModelList.add(new FindFriendsModel(fullName, photoName, userId, true));
                                             findFriendsAdapter.notifyDataSetChanged();
                                         }
                                     }
                                 } else {
                                     if (!userId.equals(currentUser.getUid())) {
-                                        Log.d("FindFriendsFragment", "HELLO FROM REFRESH FROM FINISH");
                                         findFriendsModelList.add(new FindFriendsModel(fullName, photoName, userId, false));
+
+
                                         findFriendsAdapter.notifyDataSetChanged();
                                     }
                                 }

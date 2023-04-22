@@ -179,7 +179,7 @@ public class Util {
     }
 
 
-    public static void updateChatDetails(Context context, String currentUserId, String chatUserId, String lastMessage)
+    public static void updateChatDetails(Context context, String currentUserId, String chatUserId, String lastMessage, String messageType)
     {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference chatRef = rootRef.child(NodeNames.CHATS).child(chatUserId).child(currentUserId);
@@ -194,9 +194,13 @@ public class Util {
 
                 Map chatMap = new HashMap();
                 chatMap.put(NodeNames.TIME_STAMP, ServerValue.TIMESTAMP);
-                chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount)+1);
                 chatMap.put(NodeNames.LAST_MESSAGE, lastMessage);
                 chatMap.put(NodeNames.LAST_MESSAGE_TIME, ServerValue.TIMESTAMP);
+
+                /**PROVERA DA LI JE TIP PORUKE DELETED*/
+                if(messageType.equals(Constants.MESSAGE_TYPE_DELETED))
+                    chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount));
+                else chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount)+1);
 
                 Map chatUserMap = new HashMap();
                 chatUserMap.put(NodeNames.CHATS + "/" + chatUserId + "/" + currentUserId, chatMap);

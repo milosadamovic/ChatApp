@@ -65,6 +65,8 @@ public class ProfileActivity extends AppCompatActivity {
     private FirebaseUser currentUser;
     private View progressBar;
 
+    private static boolean isResumed = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -568,5 +570,27 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
 
+    @Override
+    protected void onResume() {
+        isResumed = true;
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        isResumed = false;
+        super.onPause();
+    }
+
+    public static boolean isActivityResumed()
+    {
+        return isResumed;
+    }
 }

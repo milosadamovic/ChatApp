@@ -45,6 +45,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     @Override
     public void onBindViewHolder(@NonNull ChatListAdapter.ChatListViewHolder holder, int position) {
 
+        holder.llDeleteFriend.setVisibility(View.GONE);
         ChatListModel chatListModel = chatListModelList.get(position);
         holder.tvFullName.setText(chatListModel.getUserName());
 
@@ -94,9 +95,10 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                 intent.putExtra(Extras.USER_NAME, chatListModel.getUserName());
                 intent.putExtra(Extras.PHOTO_NAME, chatListModel.getPhotoName());
                 context.startActivity(intent);
-
             }
         });
+
+        /**DODATI ON SWIPE*/
     }
 
     @Override
@@ -106,7 +108,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
 
     public class ChatListViewHolder extends RecyclerView.ViewHolder{
 
-        private LinearLayout llChatlist;
+        private LinearLayout llChatlist, llDeleteFriend;
         private TextView tvFullName, tvLastMessage, tvLastMessageTime, tvUnreadCount;
         private ImageView ivProfile;
 
@@ -121,6 +123,9 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             tvUnreadCount = itemView.findViewById(R.id.tvUnreadCount);
             ivProfile = itemView.findViewById(R.id.ivProfile);
 
+            llDeleteFriend = itemView.findViewById(R.id.llDeleteFriend);
+
         }
     }
+
 }

@@ -32,6 +32,8 @@ import com.example.chatapp.common.Constants;
 import com.example.chatapp.common.Util;
 import com.example.chatapp.findfriends.FindFriendsFragment;
 import com.example.chatapp.login.LoginActivity;
+import com.example.chatapp.password.ChangePasswordActivity;
+import com.example.chatapp.profile.ProfileActivity;
 import com.example.chatapp.requests.RequestsFragment;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -54,17 +56,21 @@ public class ChatMessagingService extends FirebaseMessagingService {
      * KADA KORISNIK KOJI JE POSLAO ZAHTEV CANCELUJE TAJ ZAHTEV, KOD DRUGOG SE OPET POJAVLJUJE TAJ KORISNIK NA TABU FIND, ALI GA NEMA NA TABU REQUESTS
      * KADA KORISNIK KOJI JE PRIMIO ZAHTEV ODBIJE ILI PRIHVATI ZAHTEV, KORISNIK KOJI JE POSLAO ZAHTEV VISE NE MOZE DA CANCELUJE
      * REQUEST STATUS TREBA DA SE AZURIRA CIM DRUGI KORISNIK ODOBRI ILI ODBIJE ZAHTEV / ONEMOGUCITI DA NAKON PRIHVATANJA ZAHTEVA OD STRANE KORISNIKA, DRUGA STRANA MOZE DA OTKAZE ZAHTEV, JER SE NAKON PRIHVATANJA DODAJE TAJ USER U NODE CHAT
+     * ISPRAVITI DA NE MOGU PORUKE DA SE PROSLEDJUJU KORISNIKU SA KOJIM VEC CETUJEMO, SELECTFRIENDACTIVITY DODAJE KORISNIKE U LISTU, KADA STIGNE PORUKA KORISNIKU KOJI JE U PROCES FORWORDA PORUKE
+     * NAMESTENO DA SAMO PORUKA KOJU JE KORISNIK POSLAO MOZE DA SE OBRISE ZA OBA KORISNIKA, NE I KOJU JE PRIMIO
+     * IZBRISANA PORUKA OSTAJE KAO POSLEDNJA PRIMLJENA PORUKA U CHAT LISTI
+     * TREBA RESITI SLANJE ISTE NOTIFIKACIJE 2 PUTA - VIDETI KADA SE TO DESAVA
      *
-     * GORNJI DEO RESEN, STARTOVANJEM INTENTA IZ KLASE CHATMESSAGINGSERVICE I IZ ONBACKPRESSED FUNKCIJE IZ CHAT ACTIVITIJA - TREBA RESITI SLANJE ISTE NOTIFIKACIJE 2 PUTA
+     * GORNJI DEO RESEN, STARTOVANJEM INTENTA IZ KLASE CHATMESSAGINGSERVICE I IZ ONBACKPRESSED FUNKCIJE IZ CHAT ACTIVITIJA - KORIGUJ JER SE SVAKI PUT OTVARAJU NOVE AKTIVNOSTI, POGOTOVA AKO ULAZIMO I IZLAZIMO IZ CETA SA NEKIM (PRVA 4 REDA)
+     * ************* PROFILNA SLIKA JEDNOG KORISNIKA PRELAZI NA DRUGOG U LISTI NA CHAT FRAGMENTU, KADA SE NALAZE DVA KORISNIKA, JEDAN SA SLIKOM DRUGI BEZ I SALJE SE PORUKA OVOM SA SLIKOM
+     * ************* OMOGUCITI DA SE U DOPISIVANJU UVEK VIDI POSLEDNJA POSLATA PORUKA I POSLEDNJA PRIMLJENA PORUKA
      *
      *
      *
      *
      *
      *
-     * PROFILNA SLIKA JEDNOG KORISNIKA PRELAZI NA DRUGOG U LISTI NA CHAT FRAGMENTU
-     * ISPRAVITI DA NE MOGU PORUKE DA SE PROSLEDJUJU SAMOM SEBI
-     * OMOGUCITI DA SE U DOPISIVANJU UVEK VIDI POSLEDNJA POSLATA PORUKA I POSLEDNJA PRIMLJENA PORUKA
+     *
      * DODATI I BRISANJE PRIJATELJA
      * DODATI DA KADA KORISNIK NAPRAVI ACCOUNT, NE MOZE UCI U APLIKACIJU SVE DOK NE VERIFIKUJE NALOG PREKO MEJLA*/
 
@@ -134,7 +140,7 @@ public class ChatMessagingService extends FirebaseMessagingService {
                 {
                     notificationId = Constants.NOTIFICATION_TYPE_REQUESTID;
                    // intentChat = new Intent(this, FindFriendsFragment.class);
-                    flag = 2;
+                    flag = 1;
 
                    // FindFriendsFragment.loadData(this);
                 }
@@ -143,7 +149,7 @@ public class ChatMessagingService extends FirebaseMessagingService {
                     notificationId = Constants.NOTIFICATION_TYPE_REQUESTID;
                     Log.d("ChatMessagingService", "Notification CANCELLED");
                     //intentChat = new Intent(this, LoginActivity.class);
-                    flag = 2;
+                    flag = 1;
                 }
                else if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_MESSAGE))
                 {
@@ -207,7 +213,7 @@ public class ChatMessagingService extends FirebaseMessagingService {
                         notificationBuilder.setContentText("New File Received");
                     }
 
-                    if(flag == 1 && !ChatActivity.isActivityResumed())
+                    if(flag == 1 && !ChatActivity.isActivityResumed() && !ProfileActivity.isActivityResumed() && !ChangePasswordActivity.isActivityResumed())
                     {
                         Intent intent = new Intent(this, LoginActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -221,9 +227,9 @@ public class ChatMessagingService extends FirebaseMessagingService {
                     notificationBuilder.setContentText(msg);
                     notificationManager.notify(Integer.parseInt(notificationId), notificationBuilder.build());
 
-                    if(flag == 1 && !ChatActivity.isActivityResumed())
+                    if(flag == 1 && !ChatActivity.isActivityResumed() && !ProfileActivity.isActivityResumed() && !ChangePasswordActivity.isActivityResumed())
                     {
-                        /**MainActivity.tabLayout.getTabAt(1).select();*/
+                        Log.d("ChatMessagingService", "HELLO");
                         Intent intent = new Intent(this, LoginActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);

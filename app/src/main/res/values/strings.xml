@@ -84,7 +84,7 @@
     <string name="download">Download</string>
     <string name="failed_to_delete_message">Failed to delete message: %1$s</string>
     <string name="message_deleted_successfully">Message deleted successfully</string>
-    <string name="failed_to_delete_file">Failed to delete file %1$s</string>
+    <string name="failed_to_delete_file">Failed to delete file: %1$s</string>
     <string name="failed_to_store_file">Failed to store file</string>
     <string name="file_downloaded_successfully">File Downloaded Successfully</string>
     <string name="view">View</string>
@@ -93,4 +93,10 @@
     <string name="failed_to_save_device_token">Failed to save device token : $1%s</string>
     <string name="failed_to_get_token">Failed to get token : %1$s</string>
     <string name="failed_to_send_notification">Failed to send notification : %1$s</string>
+    <string name="enter_new_password">Enter New Password</string>
+    <string name="enter_old_password">Enter Old Password</string>
+    <string name="confirm_new_password">Confirm New Password</string>
+    <string name="deleted_message_text">This message was deleted</string>
+    <string name="failed_to_clear_message">Failed to clear message: %1$s</string>
+    <string name="delete_friend">DELETE FRIEND</string>
 </resources>

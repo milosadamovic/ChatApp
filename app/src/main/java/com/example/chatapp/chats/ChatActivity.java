@@ -78,6 +78,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ChatActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -114,6 +115,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private String userName, photoName;
 
     public static boolean isResumed = false;
+    private String lastMessageId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -389,7 +391,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                             Util.sendNotification(ChatActivity.this, title, msg, chatUserId, currentUserId, Constants.NOTIFICATION_TYPE_MESSAGE);
 
                             String lastMessage = !title.equals("New Message") ? title : msg;
-                            Util.updateChatDetails(ChatActivity.this, currentUserId, chatUserId,lastMessage);
+                            lastMessageId = pushId;
+                            Util.updateChatDetails(ChatActivity.this, currentUserId, chatUserId,lastMessage, msgType);
                         }
                     }
                 });
@@ -428,10 +431,14 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
+                        /**BRISANJE PORUKA*/
+                        loadMessages();
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                /**BRISANJE OBRISANIH PORUKA*/
                 loadMessages();
             }
 
@@ -711,20 +718,38 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     public void deleteMessage(String messageId, String messageType)
     {
+
+        HashMap messageMap = new HashMap();
+        messageMap.put(NodeNames.MESSAGE_ID, messageId);
+        messageMap.put(NodeNames.MESSAGE, Constants.DELETED_MESSAGE_TEXT);
+        messageMap.put(NodeNames.MESSAGE_TYPE, Constants.MESSAGE_TYPE_DELETED);
+        messageMap.put(NodeNames.MESSAGE_FROM, currentUserId);
+        messageMap.put(NodeNames.MESSAGE_TIME, ServerValue.TIMESTAMP);
+
         DatabaseReference databaseReference = mRootRef.child(NodeNames.MESSAGES).child(currentUserId).child(chatUserId).child(messageId);
-        databaseReference.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+        databaseReference.updateChildren(messageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
 
                 if(task.isSuccessful())
                 {
+
                     DatabaseReference databaseReferenceChatUser = mRootRef.child(NodeNames.MESSAGES).child(chatUserId).child(currentUserId).child(messageId);
-                    databaseReferenceChatUser.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    databaseReferenceChatUser.updateChildren(messageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
 
                             if(task.isSuccessful())
                             {
+                                /**PROVERA DA LI JE OBRISANA POSLEDNJA POSLATA PORUKA*/
+                                if(lastMessageId.equals(messageId))
+                                {
+                                    String lastMessage = Constants.DELETED_MESSAGE_TEXT;
+                                    String lastMessageType = Constants.MESSAGE_TYPE_DELETED;
+                                    Util.updateChatDetails(ChatActivity.this,currentUserId, chatUserId, lastMessage, lastMessageType);
+                                }
+
+
                                 Toast.makeText(ChatActivity.this, R.string.message_deleted_successfully, Toast.LENGTH_SHORT).show();
                                 if(!messageType.equals(Constants.MESSAGE_TYPE_TEXT))
                                 {
@@ -762,6 +787,21 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+
+    public void clearMessage(String messageId, String messageType)
+    {
+        DatabaseReference databaseReference = mRootRef.child(NodeNames.MESSAGES).child(currentUserId).child(chatUserId).child(messageId);
+        databaseReference.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+
+                if(!task.isSuccessful())
+                {
+                    Toast.makeText(ChatActivity.this, getString(R.string.failed_to_clear_message, task.getException()), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
 
     public void downloadFile(String messageId, String messageType, boolean isShare)
     {
@@ -915,12 +955,13 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    public void forwardMessage(String selectedMessageId, String selectedMessage, String selectedMessageType) {
+    public void forwardMessage(String selectedMessageId, String selectedMessage, String selectedMessageType, String chatUserId) {
 
         Intent intent = new Intent(this, SelectFriendActivity.class);
         intent.putExtra(Extras.MESSAGE, selectedMessage);
         intent.putExtra(Extras.MESSAGE_ID, selectedMessageId);
         intent.putExtra(Extras.MESSAGE_TYPE, selectedMessageType);
+        intent.putExtra(Extras.CHAT_USER_ID, chatUserId);
 
         ActivityCompat.startActivityForResult(this, intent, REQUEST_CODE_FORWARD_MESSAGE, null);
     }
@@ -953,16 +994,17 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onResume() {
+        isResumed = true;
+        Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_MESSAGEID);
         super.onResume();
         Log.d("ChatActivity:", "onResume() called");
-        isResumed = true;
     }
 
     @Override
     protected void onPause() {
+        isResumed = false;
         super.onPause();
         Log.d("ChatActivity:", "onPause() called");
-        isResumed = false;
     }
 
     @Override

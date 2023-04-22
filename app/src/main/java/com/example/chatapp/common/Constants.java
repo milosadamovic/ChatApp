@@ -17,6 +17,8 @@ public class Constants {
     public static final String MESSAGE_TYPE_TEXT = "text";
     public static final String MESSAGE_TYPE_IMAGE = "image";
     public static final String MESSAGE_TYPE_VIDEO = "video";
+    public static final String MESSAGE_TYPE_DELETED = "deleted";
+    public static final String DELETED_MESSAGE_TEXT = "This message was deleted";
 
 
     public static final String NOTIFICATION_TITLE = "title";
@@ -50,6 +52,7 @@ public class Constants {
 
     public static final String TYPING_STOPPED = "0";
     public static final String TYPING_STARTED = "1";
+
 
 
 }

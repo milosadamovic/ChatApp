@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -52,8 +53,9 @@ public class ChatFragment extends Fragment {
     private Query query;
 
     private List<String> userIds;
-    NotificationManager notificationManager;
 
+    SwipeCallback swipeCallback;
+    ItemTouchHelper itemTouchHelper;
 
     public ChatFragment() {
         // Required empty public constructor
@@ -121,6 +123,7 @@ public class ChatFragment extends Fragment {
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
+
             }
 
             @Override
@@ -138,6 +141,10 @@ public class ChatFragment extends Fragment {
 
         //progressBar.setVisibility(View.VISIBLE);
         tvEmptyChatList.setVisibility(View.VISIBLE);
+
+        swipeCallback = new SwipeCallback(chatListAdapter);
+        itemTouchHelper = new ItemTouchHelper(swipeCallback);
+        itemTouchHelper.attachToRecyclerView(rvChatList);
 
     }
 

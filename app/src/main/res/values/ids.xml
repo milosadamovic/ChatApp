@@ -3,4 +3,6 @@
     <item name="TAG_MESSAGE" type="id"/>
     <item name="TAG_MESSAGE_ID" type="id"/>
     <item name="TAG_MESSAGE_TYPE" type="id"/>
+    <item name="TAG_MESSAGE_FROM" type="id"/>
+    <item name="TAG_CURRENT_USER_ID" type="id"></item>
 </resources>

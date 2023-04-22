@@ -37,6 +37,7 @@ import org.w3c.dom.Text;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MessageViewHolder> {
 
@@ -79,13 +80,20 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             if (message.getMessageType().equals(Constants.MESSAGE_TYPE_TEXT)) {
                 holder.llSent.setVisibility(View.VISIBLE);
                 holder.llSentImage.setVisibility(View.GONE);
-            } else {
+                holder.llSentDeleted.setVisibility(View.GONE);
+            } else if (message.getMessageType().equals(Constants.MESSAGE_TYPE_DELETED)){
                 holder.llSent.setVisibility(View.GONE);
+                holder.llSentDeleted.setVisibility(View.VISIBLE);
+                holder.llSentImage.setVisibility(View.GONE);
+            }else{
+                holder.llSent.setVisibility(View.GONE);
+                holder.llSentDeleted.setVisibility(View.GONE);
                 holder.llSentImage.setVisibility(View.VISIBLE);
             }
 
             holder.llReceived.setVisibility(View.GONE);
             holder.llReceivedImage.setVisibility(View.GONE);
+            holder.llReceivedDeleted.setVisibility(View.GONE);
 
             holder.tvSentMessage.setText(message.getMessage());
             holder.tvSentMessageTime.setText(messageTime);
@@ -94,17 +102,28 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     .load(message.getMessage())
                     .placeholder(R.drawable.ic_image)
                     .into(holder.ivSent);
+            holder.tvDeletedSentMessage.setText(message.getMessage());
+            holder.tvDeletedSentMessageTime.setText(messageTime);
+
         } else {
+
             if (message.getMessageType().equals(Constants.MESSAGE_TYPE_TEXT)) {
                 holder.llReceived.setVisibility(View.VISIBLE);
+                holder.llReceivedDeleted.setVisibility(View.GONE);
+                holder.llReceivedImage.setVisibility(View.GONE);
+            } else if(message.getMessageType().equals(Constants.MESSAGE_TYPE_DELETED)){
+                holder.llReceived.setVisibility(View.GONE);
+                holder.llReceivedDeleted.setVisibility(View.VISIBLE);
                 holder.llReceivedImage.setVisibility(View.GONE);
             } else {
                 holder.llReceived.setVisibility(View.GONE);
+                holder.llReceivedDeleted.setVisibility(View.GONE);
                 holder.llReceivedImage.setVisibility(View.VISIBLE);
             }
 
             holder.llSent.setVisibility(View.GONE);
             holder.llSentImage.setVisibility(View.GONE);
+            holder.llSentDeleted.setVisibility(View.GONE);
 
             holder.tvReceivedMessage.setText(message.getMessage());
             holder.tvReceivedMessageTime.setText(messageTime);
@@ -113,6 +132,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     .load(message.getMessage())
                     .placeholder(R.drawable.ic_image)
                     .into(holder.ivReceived);
+            holder.tvDeletedReceivedMessage.setText(message.getMessage());
+            holder.tvDeletedReceivedMessageTime.setText(messageTime);
         }
 
 
@@ -121,6 +142,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         holder.clMessage.setTag(R.id.TAG_MESSAGE, message.getMessage());
         holder.clMessage.setTag(R.id.TAG_MESSAGE_ID, message.getMessageId());
         holder.clMessage.setTag(R.id.TAG_MESSAGE_TYPE, message.getMessageType());
+        holder.clMessage.setTag(R.id.TAG_MESSAGE_FROM, message.getMessageFrom());
+        holder.clMessage.setTag(R.id.TAG_CURRENT_USER_ID, currentUserId);
 
         holder.clMessage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,7 +167,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         holder.clMessage.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                Log.d("LONGCLICK : ", "LONGCLICK");
 
                 if (actionModeInstance != null)
                 {
@@ -171,8 +193,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
     public class MessageViewHolder extends RecyclerView.ViewHolder {
 
-        private LinearLayout llSent, llReceived, llSentImage, llReceivedImage;
-        private TextView tvSentMessage, tvSentMessageTime, tvReceivedMessage, tvReceivedMessageTime;
+        private LinearLayout llSent, llReceived, llSentImage, llReceivedImage, llSentDeleted, llReceivedDeleted;
+        private TextView tvSentMessage, tvSentMessageTime, tvReceivedMessage, tvReceivedMessageTime, tvDeletedSentMessage, tvDeletedSentMessageTime, tvDeletedReceivedMessage, tvDeletedReceivedMessageTime;
         private ImageView ivSent, ivReceived;
         private TextView tvSentImageTime, tvReceivedImageTime;
         private ConstraintLayout clMessage;
@@ -197,6 +219,15 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             ivReceived = itemView.findViewById(R.id.ivReceived);
             tvSentImageTime = itemView.findViewById(R.id.tvSentImageTime);
             tvReceivedImageTime = itemView.findViewById(R.id.tvReceivedImageTime);
+
+            llSentDeleted = itemView.findViewById(R.id.llSentDeleted);
+            llReceivedDeleted = itemView.findViewById(R.id.llReceivedDeleted);
+            tvDeletedSentMessage = itemView.findViewById(R.id.tvDeletedSentMessage);
+            tvDeletedSentMessageTime = itemView.findViewById(R.id.tvDeletedSentMessageTime);
+            tvDeletedReceivedMessage = itemView.findViewById(R.id.tvDeletedReceivedMessage);
+            tvDeletedReceivedMessageTime = itemView.findViewById(R.id.tvDeletedReceivedMessageTime);
+
+
         }
     }
 
@@ -210,11 +241,31 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             inflater.inflate(R.menu.menu_chat_options, menu);
 
             String selectedMessageType = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE_TYPE));
+            String selectedMessageFrom = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE_FROM));
+            String currentUserId = String.valueOf(selectedView.getTag(R.id.TAG_CURRENT_USER_ID));
 
             if(selectedMessageType.equals(Constants.MESSAGE_TYPE_TEXT))
             {
                 MenuItem itemDownload = menu.findItem(R.id.mnuDownload);
                 itemDownload.setVisible(false);
+            }
+
+            if(!Objects.equals(selectedMessageFrom,currentUserId) && !selectedMessageType.equals(Constants.MESSAGE_TYPE_DELETED))
+            {
+                MenuItem itemDelete = menu.findItem(R.id.mnuDelete);
+                itemDelete.setVisible(false);
+            }
+
+            if(selectedMessageType.equals(Constants.MESSAGE_TYPE_DELETED))
+            {
+                MenuItem itemDownload = menu.findItem(R.id.mnuDownload);
+                MenuItem itemForward = menu.findItem(R.id.mnuForward);
+                MenuItem itemShare = menu.findItem(R.id.mnuShare);
+                itemDownload.setVisible(false);
+                itemForward.setVisible(false);
+                itemShare.setVisible(false);
+
+                Log.d("MessageAdapter", "onCreateActionMode called, selectedMessageType = " + selectedMessageType);
             }
 
             return true;
@@ -232,15 +283,22 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             String selectedMessage = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE));
             String selectedMessageType = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE_TYPE));
 
+
+
             int itemId = menuItem.getItemId();
 
             switch (itemId)
             {
+
+                /**UBACITI PROVERU NA SVE OPCIJE DA LI SE RADI O PORUCI MESSAGETYPE == DELETED*/
                 case R.id.mnuDelete:
 
                     if(context instanceof ChatActivity)
-                        ((ChatActivity)context).deleteMessage(selectedMessageId, selectedMessageType);
-
+                    {
+                        if(selectedMessageType.equals(Constants.MESSAGE_TYPE_DELETED))
+                            ((ChatActivity)context).clearMessage(selectedMessageId, selectedMessageType);
+                        else ((ChatActivity)context).deleteMessage(selectedMessageId, selectedMessageType);
+                    }
                     actionMode.finish();
                     break;
 
@@ -274,7 +332,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 case R.id.mnuForward:
 
                     if(context instanceof ChatActivity)
-                        ((ChatActivity)context).forwardMessage(selectedMessageId, selectedMessage, selectedMessageType);
+                        ((ChatActivity)context).forwardMessage(selectedMessageId, selectedMessage, selectedMessageType, ((ChatActivity) context).openChatUserId);
                     actionMode.finish();
                     break;
             }

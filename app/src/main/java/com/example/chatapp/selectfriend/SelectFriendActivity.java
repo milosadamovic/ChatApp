@@ -38,7 +38,7 @@ public class SelectFriendActivity extends AppCompatActivity {
     private FirebaseUser currentUser;
     private ValueEventListener valueEventListener;
 
-    private String selectedMessage, selectedMessageId, selectedMessageType;
+    private String selectedMessage, selectedMessageId, selectedMessageType, chatUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +51,7 @@ public class SelectFriendActivity extends AppCompatActivity {
             selectedMessage = getIntent().getStringExtra(Extras.MESSAGE);
             selectedMessageId = getIntent().getStringExtra(Extras.MESSAGE_ID);
             selectedMessageType = getIntent().getStringExtra(Extras.MESSAGE_TYPE);
+            chatUserId = getIntent().getStringExtra(Extras.CHAT_USER_ID);
         }
 
         rvSelectFriend = findViewById(R.id.rvSelectFriend);
@@ -73,6 +74,8 @@ public class SelectFriendActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
+                selectFriendModels.clear();
+
                 for(DataSnapshot ds : snapshot.getChildren())
                 {
                     String userId = ds.getKey();
@@ -82,9 +85,13 @@ public class SelectFriendActivity extends AppCompatActivity {
 
                             String userName = snapshot.child(NodeNames.NAME).getValue() != null ? snapshot.child(NodeNames.NAME).getValue().toString() : "";
 
-                            SelectFriendModel friendModel = new SelectFriendModel(userId, userName, userId + ".jpg");
-                            selectFriendModels.add(friendModel);
-                            selectFriendAdapter.notifyDataSetChanged();
+                            if (!userId.equals(chatUserId))
+                            {
+                                SelectFriendModel friendModel = new SelectFriendModel(userId, userName, userId + ".jpg");
+                                selectFriendModels.add(friendModel);
+                                selectFriendAdapter.notifyDataSetChanged();
+                            }
+
 
                             progressBar.setVisibility(View.GONE);
 
