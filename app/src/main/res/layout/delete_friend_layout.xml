@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
 
     <LinearLayout
         android:id="@+id/llDeleteFriend"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
         android:background="@drawable/selected_message_background"
         android:orientation="horizontal"
-
+        android:layout_marginStart="270dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -21,13 +21,13 @@
             android:layout_width="0dp"
             android:layout_height="75dp"
             android:layout_weight="1"
-            android:letterSpacing="0.2"
-            android:paddingTop="18dp"
+            android:letterSpacing="0.1"
+            android:paddingTop="22dp"
             android:text="@string/delete_friend"
             android:textAlignment="center"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/white"
-            android:textSize="26sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
     </LinearLayout>
 

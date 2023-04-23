@@ -61,7 +61,11 @@ public class ChatMessagingService extends FirebaseMessagingService {
      * IZBRISANA PORUKA OSTAJE KAO POSLEDNJA PRIMLJENA PORUKA U CHAT LISTI
      * TREBA RESITI SLANJE ISTE NOTIFIKACIJE 2 PUTA - VIDETI KADA SE TO DESAVA
      *
-     * GORNJI DEO RESEN, STARTOVANJEM INTENTA IZ KLASE CHATMESSAGINGSERVICE I IZ ONBACKPRESSED FUNKCIJE IZ CHAT ACTIVITIJA - KORIGUJ JER SE SVAKI PUT OTVARAJU NOVE AKTIVNOSTI, POGOTOVA AKO ULAZIMO I IZLAZIMO IZ CETA SA NEKIM (PRVA 4 REDA)
+     *
+     *
+     *
+     * ****************************NIJE DOBRO RESEN PROBLEM - PROBAJ SA BROADCASTOM PRIMENI I NA BRISANJE PRIJATELJA********************************
+     * GORNJI DEO RESEN, STARTOVANJEM INTENTA IZ KLASE CHATMESSAGINGSERVICE I IZ ONBACKPRESSED FUNKCIJE IZ CHAT ACTIVITIJA I PROFILE ACTIVITYA - KORIGUJ JER SE SVAKI PUT OTVARAJU NOVE AKTIVNOSTI, POGOTOVA AKO ULAZIMO I IZLAZIMO IZ CETA SA NEKIM (PRVA 4 REDA)
      * ************* PROFILNA SLIKA JEDNOG KORISNIKA PRELAZI NA DRUGOG U LISTI NA CHAT FRAGMENTU, KADA SE NALAZE DVA KORISNIKA, JEDAN SA SLIKOM DRUGI BEZ I SALJE SE PORUKA OVOM SA SLIKOM
      * ************* OMOGUCITI DA SE U DOPISIVANJU UVEK VIDI POSLEDNJA POSLATA PORUKA I POSLEDNJA PRIMLJENA PORUKA
      *
@@ -213,13 +217,14 @@ public class ChatMessagingService extends FirebaseMessagingService {
                         notificationBuilder.setContentText("New File Received");
                     }
 
+
+                    /**OVO TREBA IZMENITI*/
                     if(flag == 1 && !ChatActivity.isActivityResumed() && !ProfileActivity.isActivityResumed() && !ChangePasswordActivity.isActivityResumed())
                     {
                         Intent intent = new Intent(this, LoginActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
                     }
-
                 }
 
                 else
@@ -227,6 +232,8 @@ public class ChatMessagingService extends FirebaseMessagingService {
                     notificationBuilder.setContentText(msg);
                     notificationManager.notify(Integer.parseInt(notificationId), notificationBuilder.build());
 
+
+                    /**OVO TREBA IZMENITI*/
                     if(flag == 1 && !ChatActivity.isActivityResumed() && !ProfileActivity.isActivityResumed() && !ChangePasswordActivity.isActivityResumed())
                     {
                         Log.d("ChatMessagingService", "HELLO");

@@ -18,7 +18,9 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.chatapp.chats.ChatFragment;
+import com.example.chatapp.chats.SwipeCallback;
 import com.example.chatapp.common.Constants;
+import com.example.chatapp.common.DataRefreshCallback;
 import com.example.chatapp.common.NodeNames;
 import com.example.chatapp.common.Util;
 import com.example.chatapp.databinding.ActivityMainBinding;
@@ -32,12 +34,13 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DataRefreshCallback {
 
 
     public static TabLayout tabLayout;
     private ViewPager2 viewPager;
     private int tabPosition;
+    SwipeCallback swipeCallback;
 
 
     @Override
@@ -58,6 +61,12 @@ public class MainActivity extends AppCompatActivity {
 
         setViewPager();
 
+    }
+
+    @Override
+    public void onDataRefreshed() {
+        Log.d("MainActivity", "onDataRefreshed() called");
+        recreate();
     }
 
 
@@ -161,18 +170,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-    @Override
-    public void onUserInteraction() {
-        super.onUserInteraction();
-        /**REQUESTS TAB*/
-       /* if(tabPosition == 1)
-            Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_REQUESTID);
-        /**FIND TAB*/
-       /* else if(tabPosition == 2)
-            Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_REPLYID);*/
-
-    }
 
     public void onStart() {
         Log.d("MainActivity", "onStart() called");

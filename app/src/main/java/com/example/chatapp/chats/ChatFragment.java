@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 
 import com.example.chatapp.R;
 import com.example.chatapp.common.Constants;
+import com.example.chatapp.common.DataRefreshCallback;
 import com.example.chatapp.common.NodeNames;
 import com.example.chatapp.common.Util;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ChatFragment extends Fragment {
+public class ChatFragment extends Fragment{
 
     private RecyclerView rvChatList;
     private View progressBar;
@@ -69,7 +71,10 @@ public class ChatFragment extends Fragment {
         Log.d("ChatFragment", "onCreateView() called");
 
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_chat, container, false);
+        View rootView  = inflater.inflate(R.layout.fragment_chat, container, false);
+        rootView.setId(R.id.chat_fragment);
+
+        return rootView;
     }
 
 
@@ -142,7 +147,7 @@ public class ChatFragment extends Fragment {
         //progressBar.setVisibility(View.VISIBLE);
         tvEmptyChatList.setVisibility(View.VISIBLE);
 
-        swipeCallback = new SwipeCallback(chatListAdapter);
+        swipeCallback = new SwipeCallback(chatListAdapter,chatListModelList);
         itemTouchHelper = new ItemTouchHelper(swipeCallback);
         itemTouchHelper.attachToRecyclerView(rvChatList);
 
@@ -210,7 +215,7 @@ public class ChatFragment extends Fragment {
     }
 
 
-  /**  @Override
+   @Override
     public void onStart() {
         super.onStart();
         Log.d("ChatFragment", "onStart() called");
@@ -239,6 +244,18 @@ public class ChatFragment extends Fragment {
         super.onDestroyView();
         Log.d("ChatFragment", "onDestroyView() called");
     }
-    */
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        Log.d("ChatFragment", "onAttach() called");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.d("ChatFragment", "onDetach() called");
+    }
+
 
 }

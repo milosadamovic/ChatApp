@@ -570,6 +570,8 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
 
+
+    /**OVO TREBA IZMENITI**/
     @Override
     public void onBackPressed() {
         super.onBackPressed();

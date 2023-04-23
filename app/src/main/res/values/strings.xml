@@ -98,5 +98,6 @@
     <string name="confirm_new_password">Confirm New Password</string>
     <string name="deleted_message_text">This message was deleted</string>
     <string name="failed_to_clear_message">Failed to clear message: %1$s</string>
-    <string name="delete_friend">DELETE FRIEND</string>
+    <string name="delete_friend">DELETE</string>
+    <string name="failed_to_delete_friend">Failed to delete a friend: %1$s</string>
 </resources>

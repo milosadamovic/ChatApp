@@ -966,6 +966,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         ActivityCompat.startActivityForResult(this, intent, REQUEST_CODE_FORWARD_MESSAGE, null);
     }
 
+
+    /**OVDE TREBA PROMENITI (INTENT)*/
     @Override
     public void onBackPressed() {
         mRootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId).child(NodeNames.UNREAD_COUNT).setValue(0);
