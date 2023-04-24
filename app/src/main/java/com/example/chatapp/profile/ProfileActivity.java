@@ -143,32 +143,6 @@ public class ProfileActivity extends AppCompatActivity {
            });
 
        }
-
-        /** METODA 2*/
-
-      /**  FirebaseAuth firebaseAuth;
-       // currentUser = FirebaseAuth.getInstance().getCurrentUser();
-       // databaseReference = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
-       // drRequests = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid());
-        firebaseAuth = FirebaseAuth.getInstance();
-       // drRequests.removeEventListener(RequestsFragment.valueEventListener);
-       // databaseReference.removeEventListener(FindFriendsFragment.valueEventListener);
-
-        FirebaseAuth.AuthStateListener authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-                    if (firebaseAuth.getCurrentUser() == null)
-                    {
-                        startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
-                        finish();
-                    }
-            }
-        };
-
-        firebaseAuth.addAuthStateListener(authStateListener);
-        firebaseAuth.signOut();
-*/
     }
 
     public void btnSaveClick(View view)
@@ -576,6 +550,7 @@ public class ProfileActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
 

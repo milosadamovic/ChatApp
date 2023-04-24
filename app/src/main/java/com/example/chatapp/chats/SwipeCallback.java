@@ -1,26 +1,22 @@
 package com.example.chatapp.chats;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.chatapp.MainActivity;
 import com.example.chatapp.R;
-import com.example.chatapp.common.DataRefreshCallback;
+import com.example.chatapp.common.Constants;
 import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.requests.RequestAdapter;
+import com.example.chatapp.common.Util;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,7 +24,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -62,7 +57,7 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
         int position = viewHolder.getAdapterPosition();
 
        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-       String chatUser = chatList.get(position).getUserId();
+       String chatUserId = chatList.get(position).getUserId();
        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
 
 
@@ -74,32 +69,36 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
         builder.setPositiveButton("Yes", (DialogInterface.OnClickListener) (dialog, which) -> {
 
 
-            rootRef.child(NodeNames.CHATS).child(currentUser.getUid()).child(chatUser).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            rootRef.child(NodeNames.CHATS).child(currentUser.getUid()).child(chatUserId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
 
                     if(task.isSuccessful())
                     {
-                        rootRef.child(NodeNames.CHATS).child(chatUser).child(currentUser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        rootRef.child(NodeNames.CHATS).child(chatUserId).child(currentUser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
 
                                 if(task.isSuccessful())
                                 {
-                                    rootRef.child(NodeNames.FRIEND_REQUESTS).child(chatUser).child(currentUser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    rootRef.child(NodeNames.FRIEND_REQUESTS).child(chatUserId).child(currentUser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
 
 
                                             if(task.isSuccessful())
                                             {
-                                                rootRef.child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid()).child(chatUser).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                rootRef.child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid()).child(chatUserId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
                                                     public void onComplete(@NonNull Task<Void> task) {
 
 
                                                             if(task.isSuccessful())
                                                             {
+                                                                String title = currentUser.getDisplayName() + " deleted you from his friends";
+                                                                String message = "You are no longer friends with " + currentUser.getDisplayName();
+
+                                                                Util.sendNotification(viewHolder.itemView.getContext(),title, message, chatUserId,  currentUser.getUid(), Constants.NOTIFICATION_TYPE_DELETED);
                                                                 chatList.remove(position);
                                                                 mAdapter.notifyItemRemoved(position);
 

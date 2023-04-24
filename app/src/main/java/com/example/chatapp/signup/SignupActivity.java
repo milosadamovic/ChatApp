@@ -55,6 +55,7 @@ public class SignupActivity extends AppCompatActivity {
     private ImageView ivProfile;
 
     private FirebaseUser firebaseUser;
+    private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
     private StorageReference fileStorage;
     private Uri localFileUri, serverFileUri;
@@ -74,6 +75,8 @@ public class SignupActivity extends AppCompatActivity {
 
         fileStorage = FirebaseStorage.getInstance().getReference(); // root folder of file storage
         progressBar = findViewById(R.id.progressBar);
+
+
 
 
 
@@ -199,6 +202,8 @@ public class SignupActivity extends AppCompatActivity {
 
     public void updateOnlyName()
     {
+
+
         progressBar.setVisibility(View.VISIBLE);
 
         UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
@@ -242,6 +247,10 @@ public class SignupActivity extends AppCompatActivity {
                             progressBar.setVisibility(View.GONE);
 
                             Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
+
+                            /**TESTIRANJE*/
+                            firebaseAuth.signOut();
+
                             startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                         }
                     });
@@ -277,7 +286,7 @@ public class SignupActivity extends AppCompatActivity {
 
            progressBar.setVisibility(View.VISIBLE);
 
-  /*final*/FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+            firebaseAuth = FirebaseAuth.getInstance();
 
             firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
@@ -288,6 +297,9 @@ public class SignupActivity extends AppCompatActivity {
                     if(task.isSuccessful())
                     {
                         firebaseUser = firebaseAuth.getCurrentUser();
+
+                        /**OVDE TREBA URADITI VALIDACIJU SLANJEM MEJLA KORISNIKU*/
+
 
                         if (localFileUri != null)
                             updateNameAndPhoto();

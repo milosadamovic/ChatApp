@@ -1,13 +1,11 @@
 package com.example.chatapp.chats;
 
-import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,14 +14,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.chatapp.R;
 import com.example.chatapp.common.Constants;
-import com.example.chatapp.common.DataRefreshCallback;
 import com.example.chatapp.common.NodeNames;
 import com.example.chatapp.common.Util;
 import com.google.firebase.auth.FirebaseAuth;

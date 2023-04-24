@@ -33,11 +33,12 @@ public class Constants {
     public static final String NOTIFICATION_TYPE_REPLY = "request_status";
     public static final String NOTIFICATION_TYPE_MESSAGE = "message";
     public static final String NOTIFICATION_TYPE_REQUEST_CANCELED = "request_canceled";
+    public static final String NOTIFICATION_TYPE_DELETED = "deleted";
 
     public static final String NOTIFICATION_TYPE_REQUESTID = "991";
     public static final String NOTIFICATION_TYPE_REPLYID = "992";
     public static final String NOTIFICATION_TYPE_MESSAGEID = "993";
-    public static final String NOTIFICATION_TYPE_REQUESTCANCELEDID = "994";
+    public static final String NOTIFICATION_TYPE_DELETEDID = "994";
 
     public static final String FIREBASE_KEY = "AAAADM6NPhM:APA91bGO59qrkvCbF1Gjvj2yQZtp_SzpvwDPIqtdhUavk1cOXaOK5oOnLpF0cVhv0uUJD90ZwdVdQ1jyf60XvmIy_30tT0UkEmy5T0RpinrtezRWm98uHvC9vRT0uoakBDNZYn6wJEL_";
     public static final String SENDER_ID = "55004970515";
@@ -52,7 +53,6 @@ public class Constants {
 
     public static final String TYPING_STOPPED = "0";
     public static final String TYPING_STARTED = "1";
-
 
 
 }

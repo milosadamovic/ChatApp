@@ -104,6 +104,7 @@ public class FindFriendsFragment extends Fragment {
     public void onResume() {
         Log.d("FindFriendsFragment", "onResume() called");
         Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REPLYID);
+        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_DELETEDID);
         super.onResume();
     }
 

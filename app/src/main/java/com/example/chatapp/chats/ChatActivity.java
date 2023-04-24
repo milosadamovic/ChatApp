@@ -972,6 +972,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     public void onBackPressed() {
         mRootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId).child(NodeNames.UNREAD_COUNT).setValue(0);
         Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         super.onBackPressed();
     }

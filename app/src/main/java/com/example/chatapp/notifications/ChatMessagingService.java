@@ -60,22 +60,17 @@ public class ChatMessagingService extends FirebaseMessagingService {
      * NAMESTENO DA SAMO PORUKA KOJU JE KORISNIK POSLAO MOZE DA SE OBRISE ZA OBA KORISNIKA, NE I KOJU JE PRIMIO
      * IZBRISANA PORUKA OSTAJE KAO POSLEDNJA PRIMLJENA PORUKA U CHAT LISTI
      * TREBA RESITI SLANJE ISTE NOTIFIKACIJE 2 PUTA - VIDETI KADA SE TO DESAVA
+     * DODATI I BRISANJE PRIJATELJA
      *
      *
      *
      *
-     * ****************************NIJE DOBRO RESEN PROBLEM - PROBAJ SA BROADCASTOM PRIMENI I NA BRISANJE PRIJATELJA********************************
-     * GORNJI DEO RESEN, STARTOVANJEM INTENTA IZ KLASE CHATMESSAGINGSERVICE I IZ ONBACKPRESSED FUNKCIJE IZ CHAT ACTIVITIJA I PROFILE ACTIVITYA - KORIGUJ JER SE SVAKI PUT OTVARAJU NOVE AKTIVNOSTI, POGOTOVA AKO ULAZIMO I IZLAZIMO IZ CETA SA NEKIM (PRVA 4 REDA)
+     * ****************************PROBLEM RESEN SA FLEGOVIMA NA INTENTU (CLEAR_TASK) PRIMENI I NA BRISANJE PRIJATELJA********************************
+     * GORNJI DEO RESEN, STARTOVANJEM INTENTA IZ KLASE CHATMESSAGINGSERVICE I IZ ONBACKPRESSED FUNKCIJE IZ CHAT ACTIVITIJA I PROFILE ACTIVITYA
      * ************* PROFILNA SLIKA JEDNOG KORISNIKA PRELAZI NA DRUGOG U LISTI NA CHAT FRAGMENTU, KADA SE NALAZE DVA KORISNIKA, JEDAN SA SLIKOM DRUGI BEZ I SALJE SE PORUKA OVOM SA SLIKOM
      * ************* OMOGUCITI DA SE U DOPISIVANJU UVEK VIDI POSLEDNJA POSLATA PORUKA I POSLEDNJA PRIMLJENA PORUKA
      *
      *
-     *
-     *
-     *
-     *
-     *
-     * DODATI I BRISANJE PRIJATELJA
      * DODATI DA KADA KORISNIK NAPRAVI ACCOUNT, NE MOZE UCI U APLIKACIJU SVE DOK NE VERIFIKUJE NALOG PREKO MEJLA*/
 
     /**TODO DRUGI KORAK
@@ -86,7 +81,9 @@ public class ChatMessagingService extends FirebaseMessagingService {
      *      PROBLEM KREIRANJA TOKENA (DA LI JE ZAISTA PROBLEM ?!)
      *      NOVA NOTIFIKACIJA SE PREPISUJE PREKO STARE (AKO IMAS VREMENA ISPRAVI, VIDI KAKO JE NA VIBERU/WA)
      *      JOS SE POZABAVITI LOGOUTOM
+     *      PROVERI KADA SE KANCELUJU NOTIFIKACIJE, PROVERI DA LI JE LOGIKA DOBRA
      *      PROCI POSLEDNJI TURORIJAL
+     *      JobScheduler, JobService, Background Work Overview
      */
 
     /**TODO TRECI KORAK
@@ -120,7 +117,7 @@ public class ChatMessagingService extends FirebaseMessagingService {
 
         /**AKO SE VEC NALAZIMO U CETU SA OSOBOM OD KOJE PRIMAMO NOTIFIKACIJU NECEMO PRIKAZATI NOTIFIKACIJU
          *  (NE MOZEMO SE NALAZITI U CETU SA OSOBOM KOJA NAM ODOBRAVA ILI ODBIJA REQUEST ILI KOJA NAM SALJE REQUEST)*/
-        if(isChatActivityRunning && Objects.equals(userId, ChatActivity.openChatUserId) && ChatActivity.isActivityResumed()) {Log.d("ChatMessagingService", "onMessageReceived() - ChatActivity open"); return;}
+        if(isChatActivityRunning && Objects.equals(userId, ChatActivity.openChatUserId) && ChatActivity.isActivityResumed() && Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_MESSAGE)) return;
 
         else {
 
@@ -133,26 +130,21 @@ public class ChatMessagingService extends FirebaseMessagingService {
                 if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_REPLY))
                 {
                     notificationId = Constants.NOTIFICATION_TYPE_REPLYID;
-                    // intentChat = new Intent(this, RequestsFragment.class);
                     flag = 1;
-
-                    Log.d("ChatMessagingService", "onMessageReceived() - notificationId: " + notificationId);
-
-                    // FindFriendsFragment.loadData(this);
                 }
                 else if(Objects.equals(notificationType,Constants.NOTIFICATION_TYPE_REQUEST))
                 {
                     notificationId = Constants.NOTIFICATION_TYPE_REQUESTID;
-                   // intentChat = new Intent(this, FindFriendsFragment.class);
                     flag = 1;
-
-                   // FindFriendsFragment.loadData(this);
                 }
                 else if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_REQUEST_CANCELED))
                 {
                     notificationId = Constants.NOTIFICATION_TYPE_REQUESTID;
-                    Log.d("ChatMessagingService", "Notification CANCELLED");
-                    //intentChat = new Intent(this, LoginActivity.class);
+                    flag = 1;
+                }
+                else if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_DELETED))
+                {
+                    notificationId = Constants.NOTIFICATION_TYPE_DELETEDID;
                     flag = 1;
                 }
                else if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_MESSAGE))
@@ -217,12 +209,10 @@ public class ChatMessagingService extends FirebaseMessagingService {
                         notificationBuilder.setContentText("New File Received");
                     }
 
-
-                    /**OVO TREBA IZMENITI*/
                     if(flag == 1 && !ChatActivity.isActivityResumed() && !ProfileActivity.isActivityResumed() && !ChangePasswordActivity.isActivityResumed())
                     {
                         Intent intent = new Intent(this, LoginActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                     }
                 }
@@ -233,12 +223,11 @@ public class ChatMessagingService extends FirebaseMessagingService {
                     notificationManager.notify(Integer.parseInt(notificationId), notificationBuilder.build());
 
 
-                    /**OVO TREBA IZMENITI*/
                     if(flag == 1 && !ChatActivity.isActivityResumed() && !ProfileActivity.isActivityResumed() && !ChangePasswordActivity.isActivityResumed())
                     {
                         Log.d("ChatMessagingService", "HELLO");
                         Intent intent = new Intent(this, LoginActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                     }
 

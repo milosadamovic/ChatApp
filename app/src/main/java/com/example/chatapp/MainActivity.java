@@ -3,7 +3,6 @@ package com.example.chatapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
@@ -11,36 +10,27 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.example.chatapp.chats.ChatFragment;
 import com.example.chatapp.chats.SwipeCallback;
-import com.example.chatapp.common.Constants;
-import com.example.chatapp.common.DataRefreshCallback;
 import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.common.Util;
-import com.example.chatapp.databinding.ActivityMainBinding;
 import com.example.chatapp.findfriends.FindFriendsFragment;
 import com.example.chatapp.profile.ProfileActivity;
 import com.example.chatapp.requests.RequestsFragment;
 import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-public class MainActivity extends AppCompatActivity implements DataRefreshCallback {
+public class MainActivity extends AppCompatActivity {
 
 
     public static TabLayout tabLayout;
     private ViewPager2 viewPager;
     private int tabPosition;
-    SwipeCallback swipeCallback;
 
 
     @Override
@@ -61,12 +51,6 @@ public class MainActivity extends AppCompatActivity implements DataRefreshCallba
 
         setViewPager();
 
-    }
-
-    @Override
-    public void onDataRefreshed() {
-        Log.d("MainActivity", "onDataRefreshed() called");
-        recreate();
     }
 
 
