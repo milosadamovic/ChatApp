@@ -49,7 +49,7 @@ public class ChatFragment extends Fragment{
     private ChildEventListener childEventListener;
     private Query query;
 
-    private List<String> userIds;
+    public static List<String> userIds;
 
     SwipeCallback swipeCallback;
     ItemTouchHelper itemTouchHelper;
@@ -176,19 +176,25 @@ public class ChatFragment extends Fragment{
 
                      ChatListModel chatListModel = new ChatListModel(userId, fullName, photoName, unreadCount, lastMessage, lastMessageTime);
 
+                     Log.d("ChatFragment. updateList()", "fullName: " + fullName);
+                     Log.d("ChatFragment. updateList()", "photoName: " + photoName);
+                     Log.d("ChatFragment, updateList()", "isNew: " + isNew);
+
                      if(isNew)
                      {
                          chatListModelList.add(chatListModel);
                          userIds.add(userId);
+                         int indexOfUser = userIds.indexOf(userId);
+                         chatListAdapter.notifyItemChanged(indexOfUser);
                      }
 
                      else
                      {
-                        int indexOfClickedUser = userIds.indexOf(userId);
-                        chatListModelList.set(indexOfClickedUser, chatListModel);
+                        int indexOfChangedUser = userIds.indexOf(userId);
+                        chatListModelList.set(indexOfChangedUser, chatListModel);
+                        chatListAdapter.notifyItemChanged(indexOfChangedUser);
                      }
 
-                     chatListAdapter.notifyDataSetChanged();
                  }
 
                  @Override

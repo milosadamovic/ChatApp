@@ -101,6 +101,7 @@ public class Util {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
+                /**KADA NEMA DEVICE TOKENA NEMA SLANJA NOTIFIKACIJE*/
                 if(snapshot.child(NodeNames.DEVICE_TOKEN).getValue() != null)
                 {
 

@@ -31,6 +31,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -64,6 +65,7 @@ public class SignupActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
@@ -75,10 +77,6 @@ public class SignupActivity extends AppCompatActivity {
 
         fileStorage = FirebaseStorage.getInstance().getReference(); // root folder of file storage
         progressBar = findViewById(R.id.progressBar);
-
-
-
-
 
     }
 
@@ -246,12 +244,12 @@ public class SignupActivity extends AppCompatActivity {
 
                             progressBar.setVisibility(View.GONE);
 
-                            Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
-
-                            /**TESTIRANJE*/
-                            firebaseAuth.signOut();
-
-                            startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                            if(task.isSuccessful())
+                            {
+                                Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
+                                //firebaseAuth.signOut();
+                                startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                            }
                         }
                     });
 
@@ -259,6 +257,7 @@ public class SignupActivity extends AppCompatActivity {
                 else
                 {
                     Toast.makeText(SignupActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
+                    Log.d("SignupFailed: ","Signup failed: " + task.getException());
                 }
             }
         });
@@ -284,11 +283,11 @@ public class SignupActivity extends AppCompatActivity {
             etConfirmPassword.setError(getString(R.string.password_mismatch));
         }else {
 
-           progressBar.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.VISIBLE);
 
             firebaseAuth = FirebaseAuth.getInstance();
 
-            firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+           firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
 
@@ -297,11 +296,7 @@ public class SignupActivity extends AppCompatActivity {
                     if(task.isSuccessful())
                     {
                         firebaseUser = firebaseAuth.getCurrentUser();
-
-                        /**OVDE TREBA URADITI VALIDACIJU SLANJEM MEJLA KORISNIKU*/
-
-
-                        if (localFileUri != null)
+                       if (localFileUri != null)
                             updateNameAndPhoto();
                         else
                             updateOnlyName();
@@ -309,6 +304,7 @@ public class SignupActivity extends AppCompatActivity {
                     else
                     {
                         Toast.makeText(SignupActivity.this, getString(R.string.signup_failed, task.getException()), Toast.LENGTH_LONG).show();
+                        Log.d("SignupFailed2: ","Signup failed: " + task.getException());
                     }
                 }
             });

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +20,10 @@ import com.example.chatapp.R;
 import com.example.chatapp.common.Constants;
 import com.example.chatapp.common.Extras;
 import com.example.chatapp.common.Util;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -53,7 +57,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://chatapp-ca8cb.appspot.com");
         StorageReference mountRef = storageRef.child(Constants.IMAGES_FOLDER + "/" + chatListModel.getPhotoName());
 
-        mountRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+
+       /* mountRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
                 Glide.with(context)
@@ -62,7 +67,39 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                         .error(R.drawable.default_profile)
                         .into(holder.ivProfile);
             }
+        });*/
+
+        mountRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+
+                if(task.isSuccessful())
+                {
+                    Uri uri = task.getResult();
+                    Glide.with(context)
+                            .load(uri)
+                            .placeholder(R.drawable.default_profile)
+                            .error(R.drawable.default_profile)
+                            .into(holder.ivProfile);
+                }
+                else
+                {
+                    Glide.with(context)
+                            .load(R.drawable.default_profile)
+                            .placeholder(R.drawable.default_profile)
+                            .error(R.drawable.default_profile)
+                            .into(holder.ivProfile);
+                    Log.d("ChatFragment - ChatListAdapter","profile image download FAILED");
+                }
+
+            }
         });
+
+
+
+        Log.d("ChatFragment - ChatListAdapter", "userName: " + chatListModel.getUserName());
+        Log.d("ChatFragment - ChatListAdapter", "mountRef: " + mountRef);
+        Log.d("ChatFragment - ChatListAdapter","----------------------------------------------");
 
 
         /**LAST MESSAGE*/

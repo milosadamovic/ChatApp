@@ -12,12 +12,14 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -92,12 +94,12 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     public static String openChatUserId;
 
     private RecyclerView rvMessages;
-    private SwipeRefreshLayout srlMessages;
     private MessagesAdapter messagesAdapter;
     private List<MessageModel> messageList;
 
-    private int currentPage = 1;
-    private static final int RECORD_PER_PAGE = 30;
+
+    /*private int currentPage = 1;
+    private static final int RECORD_PER_PAGE = 30;*/
 
     private static final int REQUEST_CODE_PICK_IMAGE = 101;
     private static final int REQUEST_CODE_CAPTURE_IMAGE = 102;
@@ -115,19 +117,19 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private String userName, photoName;
 
     public static boolean isResumed = false;
-    private String lastMessageId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         Log.d("ChatActivity", "onCreate() called");
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+
+
+        /**POSTAVLJANJE ACTION BARA*/
         ActionBar actionBar = getSupportActionBar();
-
-
         if(actionBar != null)
         {
             actionBar.setTitle("");
@@ -136,8 +138,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             /*actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeButtonEnabled(true);*/
             actionBar.setElevation(0);
-
-
             actionBar.setCustomView(actionBarLayout);
             actionBar.setDisplayOptions(actionBar.getDisplayOptions() | ActionBar.DISPLAY_SHOW_CUSTOM);
         }
@@ -160,6 +160,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         mRootRef = FirebaseDatabase.getInstance().getReference();
         currentUserId = firebaseAuth.getCurrentUser().getUid();
 
+
+        /**NABAVLJANJE PODATAKA O KORISNIKU IZ PRETHODNE AKTIVNOSTI*/
         if(getIntent().hasExtra(Extras.USER_KEY))
         {
             chatUserId = getIntent().getStringExtra(Extras.USER_KEY);
@@ -176,8 +178,9 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             photoName = getIntent().getStringExtra(Extras.PHOTO_NAME);
         }
 
-        tvUserName.setText(userName);
 
+        /**POSTAVLJANJE IMENA USERA I SLIKE AKO JE IMA*/
+        tvUserName.setText(userName);
         if(!TextUtils.isEmpty(photoName))
         {
             StorageReference photoRef = FirebaseStorage.getInstance().getReference().child(Constants.IMAGES_FOLDER).child(photoName);
@@ -195,10 +198,10 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             });
         }
 
-        rvMessages = findViewById(R.id.rvMessages);
-        srlMessages = findViewById(R.id.srlMessages);
 
+        rvMessages = findViewById(R.id.rvMessages);
         messageList = new ArrayList<>();
+
         messagesAdapter = new MessagesAdapter(this,messageList);
         rvMessages.setLayoutManager(new LinearLayoutManager(this));
         rvMessages.setAdapter(messagesAdapter);
@@ -208,14 +211,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         mRootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId).child(NodeNames.UNREAD_COUNT).setValue(0);
 
         rvMessages.scrollToPosition(messageList.size() - 1);
-        srlMessages.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                currentPage++;
-                loadMessages();
-            }
-        });
 
+        /**ATTACHMENT OPCIJE - BOTTOM DIALOG*/
         bottomSheetDialog = new BottomSheetDialog(this);
         View view = getLayoutInflater().inflate(R.layout.chat_file_options, null);
         view.findViewById(R.id.llCamera).setOnClickListener(this);
@@ -225,6 +222,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         bottomSheetDialog.setContentView(view);
 
 
+        /**PROVERA DA LI SE RADI O FORWARD PORUCI*/
         if(getIntent().hasExtra(Extras.MESSAGE) && getIntent().hasExtra(Extras.MESSAGE_ID) && getIntent().hasExtra(Extras.MESSAGE_TYPE))
         {
             String message = getIntent().getStringExtra(Extras.MESSAGE);
@@ -265,6 +263,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
+
+        /**SETOVANJE ONLINE/OFFLINE STATUSA*/
         DatabaseReference databaseReferenceUsers = mRootRef.child(NodeNames.USERS).child(chatUserId);
         databaseReferenceUsers.addValueEventListener(new ValueEventListener() {
             @Override
@@ -287,6 +287,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+
+        /**SETOVANJE TYPING STATUSA*/
         etMessage.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -340,6 +342,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+
+        /**BRISANJE NOTIFIKACIJE-PORUKA UKOLIKO POSTOJI*/
         Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_MESSAGEID);
 
     }
@@ -391,7 +395,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                             Util.sendNotification(ChatActivity.this, title, msg, chatUserId, currentUserId, Constants.NOTIFICATION_TYPE_MESSAGE);
 
                             String lastMessage = !title.equals("New Message") ? title : msg;
-                            lastMessageId = pushId;
                             Util.updateChatDetails(ChatActivity.this, currentUserId, chatUserId,lastMessage, msgType);
                         }
                     }
@@ -406,12 +409,17 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void loadMessages()
+     private void loadMessages()
     {
         messageList.clear();
-        databaseReferenceMessages = mRootRef.child(NodeNames.MESSAGES).child(currentUserId).child(chatUserId);
 
-        Query messageQuery = databaseReferenceMessages.limitToLast(currentPage * RECORD_PER_PAGE);
+        databaseReferenceMessages = mRootRef.child(NodeNames.MESSAGES).child(currentUserId).child(chatUserId);
+        Query messageQuery = databaseReferenceMessages.orderByChild(NodeNames.LAST_MESSAGE_TIME);
+        //Query messageQuery = databaseReferenceMessages.limitToLast(currentPage * RECORD_PER_PAGE);
+
+
+        Log.d("ChatActivity", "loadMessages() - HELLO FROM LOAD MESSAGES");
+
 
         if (childEventListener != null)
             messageQuery.removeEventListener(childEventListener);
@@ -419,27 +427,30 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                //Log.d("ChatActivity", "CHILD HAS BEEN ADDED");
                 MessageModel message = snapshot.getValue(MessageModel.class);
 
                 messageList.add(message);
+
+                /**PAZI NA NOTIFY*/
+               // messagesAdapter.notifyItemInserted(messageList.size()-1);
                 messagesAdapter.notifyDataSetChanged();
                 rvMessages.scrollToPosition(messageList.size()-1);
-                srlMessages.setRefreshing(false);
+
 
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                        /**BRISANJE PORUKA*/
-                        loadMessages();
+                    loadMessages();
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
-                /**BRISANJE OBRISANIH PORUKA*/
-                loadMessages();
+                    loadMessages();
             }
 
             @Override
@@ -449,7 +460,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                srlMessages.setRefreshing(false);
             }
         };
 
@@ -464,6 +474,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId())
         {
             case R.id.ivSend:
+
                 if(Util.connectionAvailable(this))
                 {
                     DatabaseReference userMessagePush = mRootRef.child(NodeNames.MESSAGES).child(currentUserId).child(chatUserId).push(); // generating unique message id
@@ -578,8 +589,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         UploadTask uploadTask = fileRef.putFile(uri);
 
         uploadProgress(uploadTask, fileRef, pushId, messageType);
-
-
     }
 
     private void uploadBytes(ByteArrayOutputStream bytes, String messageType)
@@ -716,7 +725,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
-    public void deleteMessage(String messageId, String messageType)
+    public void deleteMessage(String messageId, String messageType, int messagePosition)
     {
 
         HashMap messageMap = new HashMap();
@@ -733,7 +742,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
                 if(task.isSuccessful())
                 {
-
                     DatabaseReference databaseReferenceChatUser = mRootRef.child(NodeNames.MESSAGES).child(chatUserId).child(currentUserId).child(messageId);
                     databaseReferenceChatUser.updateChildren(messageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
@@ -741,8 +749,10 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
                             if(task.isSuccessful())
                             {
+
                                 /**PROVERA DA LI JE OBRISANA POSLEDNJA POSLATA PORUKA*/
-                                if(lastMessageId.equals(messageId))
+                                Log.d("ChatActivity", "deleteMessage() - messagePosition: " + messagePosition + "  messageList.size() - 1: " + (messageList.size()-1));
+                                if((messageList.size()-1) == messagePosition)
                                 {
                                     String lastMessage = Constants.DELETED_MESSAGE_TEXT;
                                     String lastMessageType = Constants.MESSAGE_TYPE_DELETED;
@@ -803,6 +813,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+
+    /**********************************VRATI MIN SDK NA 30 !!!!****************************/
     public void downloadFile(String messageId, String messageType, boolean isShare)
     {
 
@@ -966,8 +978,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         ActivityCompat.startActivityForResult(this, intent, REQUEST_CODE_FORWARD_MESSAGE, null);
     }
 
-
-    /**OVDE TREBA PROMENITI (INTENT)*/
     @Override
     public void onBackPressed() {
         mRootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId).child(NodeNames.UNREAD_COUNT).setValue(0);
@@ -976,13 +986,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(intent);
         super.onBackPressed();
     }
-
-    /*@Override
-    public void onUserInteraction() {
-        super.onUserInteraction();
-        Util.cancelNotifications(this);
-        Log.d("ChatActivity:", "onUserInteraction() called");
-    }*/
 
 
     public static boolean isActivityResumed() {
@@ -1012,7 +1015,14 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onStop() {
-        super.onStop();
+        mRootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId).child(NodeNames.UNREAD_COUNT).setValue(0);
         Log.d("ChatActivity:", "onStop() called");
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d("ChatActivity:", "onDestroy() called");
+        super.onDestroy();
     }
 }

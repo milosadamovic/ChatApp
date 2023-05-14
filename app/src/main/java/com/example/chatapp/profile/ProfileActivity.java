@@ -108,8 +108,6 @@ public class ProfileActivity extends AppCompatActivity {
     public void btnLogoutClick(View view)
     {
 
-        /** METODA 1 */
-
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
 
@@ -129,9 +127,11 @@ public class ProfileActivity extends AppCompatActivity {
                    {
                        //drRequests.removeEventListener(RequestsFragment.valueEventListener);
                        //drUsers.removeEventListener(FindFriendsFragment.valueEventListener);
+                       DatabaseReference databaseReferenceUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS).child(firebaseAuth.getCurrentUser().getUid());
+                       databaseReferenceUsers.child(NodeNames.ONLINE).setValue(false);
+
                        firebaseAuth.signOut();
                        startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
-
                        finish();
                    }
                    else
@@ -283,7 +283,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        // PRVO TREBA PROVERITI DA LI USER IMA SLIKU U STORAGEU
+        /**PRVO TREBA PROVERITI DA LI USER IMA SLIKU U STORAGEU*/
 
         if(serverFileUri == null)
         {
@@ -545,7 +545,7 @@ public class ProfileActivity extends AppCompatActivity {
 
 
 
-    /**OVO TREBA IZMENITI**/
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();

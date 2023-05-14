@@ -137,7 +137,7 @@ public class LoginActivity extends AppCompatActivity {
                         public void onComplete(@NonNull Task<String> task) {
                             if (!task.isSuccessful()) {
                                Toast.makeText(LoginActivity.this, getString(R.string.failed_to_get_token, task.getException()), Toast.LENGTH_SHORT).show();
-                                return;
+                               return;
                             }
 
                             String token = task.getResult();

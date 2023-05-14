@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -45,8 +46,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     private List<MessageModel> messageList;
     private FirebaseAuth firebaseAuth;
 
-    private ActionMode actionModeInstance;
+    public  ActionMode actionModeInstance;
     private ConstraintLayout selectedView;
+    private int indexOfSelectedMessage = -1;
 
     public MessagesAdapter(Context context, List<MessageModel> messageList) {
         this.context = context;
@@ -65,9 +67,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
 
         MessageModel message = messageList.get(position);
+
         firebaseAuth = FirebaseAuth.getInstance();
         String currentUserId = firebaseAuth.getCurrentUser().getUid();
-
         String fromUserId = message.getMessageFrom();
 
         SimpleDateFormat sfd = new SimpleDateFormat("dd-MM-yyyy HH:mm");
@@ -75,7 +77,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         String[] splitString = dateTime.split(" ");
         String messageTime = splitString[1];
 
-        // if equals than it is a sent message
+        /**PROVERA DA LI JE PORUKA POSLATA ILI PRIMLJENA*/
         if (fromUserId.equals(currentUserId)) {
             if (message.getMessageType().equals(Constants.MESSAGE_TYPE_TEXT)) {
                 holder.llSent.setVisibility(View.VISIBLE);
@@ -105,13 +107,15 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             holder.tvDeletedSentMessage.setText(message.getMessage());
             holder.tvDeletedSentMessageTime.setText(messageTime);
 
-        } else {
+        }
+        else {
 
             if (message.getMessageType().equals(Constants.MESSAGE_TYPE_TEXT)) {
                 holder.llReceived.setVisibility(View.VISIBLE);
                 holder.llReceivedDeleted.setVisibility(View.GONE);
                 holder.llReceivedImage.setVisibility(View.GONE);
-            } else if(message.getMessageType().equals(Constants.MESSAGE_TYPE_DELETED)){
+            }
+            else if(message.getMessageType().equals(Constants.MESSAGE_TYPE_DELETED)){
                 holder.llReceived.setVisibility(View.GONE);
                 holder.llReceivedDeleted.setVisibility(View.VISIBLE);
                 holder.llReceivedImage.setVisibility(View.GONE);
@@ -135,8 +139,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             holder.tvDeletedReceivedMessage.setText(message.getMessage());
             holder.tvDeletedReceivedMessageTime.setText(messageTime);
         }
-
-
 
 
         holder.clMessage.setTag(R.id.TAG_MESSAGE, message.getMessage());
@@ -164,20 +166,28 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             }
         });
 
+        if (indexOfSelectedMessage == messageList.indexOf(message)) holder.clMessage.setBackground(ContextCompat.getDrawable(context, R.drawable.selected_message_background));
+        else  holder.clMessage.setBackground(ContextCompat.getDrawable(context, R.drawable.default_message_background));
+
+
         holder.clMessage.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
 
+                Log.d("MyActivity", "onLongClick()  HELLO");
+
                 if (actionModeInstance != null)
                 {
                     Log.d("MyActivity", "onLongClick - actionMode: " + actionModeInstance);
+                    holder.clMessage.setBackground(ContextCompat.getDrawable(context, R.drawable.default_message_background));
+                    actionModeInstance.finish();
                     return false;
                 }
-
 
                 selectedView = holder.clMessage;
                 actionModeInstance = ((AppCompatActivity) context).startSupportActionMode(actionModeCallBack);
                 holder.clMessage.setBackground(ContextCompat.getDrawable(context, R.drawable.selected_message_background));
+                indexOfSelectedMessage = messageList.indexOf(message);
 
                 return true;
             }
@@ -189,6 +199,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     @Override
     public int getItemCount() {
         return messageList.size();
+    }
+
+   public void onViewRecycled(@NonNull MessageViewHolder holder) {
+
+       super.onViewRecycled(holder);
+
+       //holder.clMessage.setBackground(ContextCompat.getDrawable(context, R.drawable.default_message_background));
+
     }
 
     public class MessageViewHolder extends RecyclerView.ViewHolder {
@@ -235,6 +253,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     public ActionMode.Callback actionModeCallBack = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+
 
             Log.d("MyActivity", "onCreateActionMode - actionMode: " + actionMode);
             MenuInflater inflater = actionMode.getMenuInflater();
@@ -297,7 +316,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     {
                         if(selectedMessageType.equals(Constants.MESSAGE_TYPE_DELETED))
                             ((ChatActivity)context).clearMessage(selectedMessageId, selectedMessageType);
-                        else ((ChatActivity)context).deleteMessage(selectedMessageId, selectedMessageType);
+                        else ((ChatActivity)context).deleteMessage(selectedMessageId, selectedMessageType, indexOfSelectedMessage);
                     }
                     actionMode.finish();
                     break;
@@ -347,10 +366,13 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             actionModeInstance = null;
             Log.d("MyActivity", "onDestroyActionMode - actionMode: " + actionMode);
             Log.d("MyActivity", "onDestroyActionMode - actionMode: " + actionModeInstance);
-            selectedView.setBackgroundColor(ContextCompat.getColor(context, R.color.activity_chat_color));
+
+            selectedView.setBackground(ContextCompat.getDrawable(context, R.drawable.default_message_background));
+            indexOfSelectedMessage = -1;
 
         }
     };
+
 
 }
 
