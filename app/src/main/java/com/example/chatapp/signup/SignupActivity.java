@@ -5,7 +5,6 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -23,25 +22,18 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.chatapp.R;
-import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.common.OnGetDataListener;
-import com.example.chatapp.common.Util;
+import com.example.chatapp.util.NodeNames;
 import com.example.chatapp.login.LoginActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -52,15 +44,16 @@ public class SignupActivity extends AppCompatActivity {
 
 
     private TextInputEditText etEmail, etName, etPassword, etConfirmPassword;
-    private String email, name, password, confirmPassword;
     private ImageView ivProfile;
+    private View pB;
+    private String email, name, password, confirmPassword;
 
-    private FirebaseUser firebaseUser;
+    private FirebaseUser currentUser;
     private FirebaseAuth firebaseAuth;
-    private DatabaseReference databaseReference;
+    private DatabaseReference dbRefUsers;
     private StorageReference fileStorage;
     private Uri localFileUri, serverFileUri;
-    private View progressBar;
+
 
 
     @Override
@@ -74,12 +67,14 @@ public class SignupActivity extends AppCompatActivity {
         etName = findViewById(R.id.etName);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
         ivProfile = findViewById(R.id.ivProfile);
+        pB = findViewById(R.id.progressBar);
 
-        fileStorage = FirebaseStorage.getInstance().getReference(); // root folder of file storage
-        progressBar = findViewById(R.id.progressBar);
+        fileStorage = FirebaseStorage.getInstance().getReference();
+        dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
 
     }
 
+    /**GRANTING PERMISSION AND PICKING PROFILE IMAGE*/
     public void pickImage(View v)
     {
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
@@ -93,7 +88,6 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
-    // You can do the assignment inside onAttach or onCreate, i.e, before the activity is displayed
     ActivityResultLauncher<Intent> pickingImageActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -126,17 +120,20 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
+
+
+    /**SINGING USER WITH OR WITHOUT PROFILE IMAGE*/
     public void updateNameAndPhoto()
     {
-        String strFileName = firebaseUser.getUid() + ".jpg";
+        String strFileName = currentUser.getUid() + ".jpg";
 
         final StorageReference fileRef = fileStorage.child("images/" + strFileName);
 
-        progressBar.setVisibility(View.VISIBLE);
+        pB.setVisibility(View.VISIBLE);
         fileRef.putFile(localFileUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                progressBar.setVisibility(View.GONE);
+                pB.setVisibility(View.GONE);
                 if(task.isSuccessful())
                 {
                     fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
@@ -150,32 +147,21 @@ public class SignupActivity extends AppCompatActivity {
                                     .setPhotoUri(serverFileUri)
                                     .build();
 
-                            firebaseUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            currentUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if(task.isSuccessful())
                                     {
-                                        String userID = firebaseUser.getUid();
-                                        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+                                        String userID = currentUser.getUid();
+                                        //dbRefUsers = FirebaseDatabase.getInstance().getReference().child("Users");
 
                                         HashMap<String,String> hashMap = new HashMap<>();
                                         hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                                         hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                                         hashMap.put(NodeNames.ONLINE, "true");
                                         hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
-                                        Util.incrementUserCounter(userID, new OnGetDataListener() {
-                                            @Override
-                                            public void onSuccess(Object data) {
-                                                Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
-                                            }
 
-                                            @Override
-                                            public void onFailure(Exception exception) {
-                                                Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
-                                            }
-                                        });
-
-                                        databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        dbRefUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
@@ -197,57 +183,43 @@ public class SignupActivity extends AppCompatActivity {
         });
 
     }
-
-    public void updateOnlyName()
+     public void updateOnlyName()
     {
 
-
-        progressBar.setVisibility(View.VISIBLE);
+        pB.setVisibility(View.VISIBLE);
 
         UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
                 .setDisplayName(etName.getText().toString().trim())
                 .build();
 
-        firebaseUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
+        currentUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
 
-                progressBar.setVisibility(View.GONE);
+                pB.setVisibility(View.GONE);
 
                 if(task.isSuccessful())
                 {
-                    String userID = firebaseUser.getUid();
-                    databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+                    String userID = currentUser.getUid();
+                    //dbRefUsers = FirebaseDatabase.getInstance().getReference().child("Users");
 
                     HashMap<String,String> hashMap = new HashMap<>();
                     hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                     hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                     hashMap.put(NodeNames.ONLINE, "true");
                     hashMap.put(NodeNames.PHOTO, "");
-                    Util.incrementUserCounter(userID, new OnGetDataListener() {
-                        @Override
-                        public void onSuccess(Object data) {
-                            Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
-                        }
 
-                        @Override
-                        public void onFailure(Exception exception) {
-                            Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
-                        }
-                    });
+                    pB.setVisibility(View.VISIBLE);
 
-                    progressBar.setVisibility(View.VISIBLE);
-
-                    databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    dbRefUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
 
-                            progressBar.setVisibility(View.GONE);
+                            pB.setVisibility(View.GONE);
 
                             if(task.isSuccessful())
                             {
                                 Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
-                                //firebaseAuth.signOut();
                                 startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                             }
                         }
@@ -263,7 +235,11 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
+
+
+    /**POTREBNA PROVERA DA LI IMA KONEKCIJE SA MREZOM*/
     public void btnSignupClick(View v) {
+
         email = etEmail.getText().toString().trim();
         name = etName.getText().toString().trim();
         password = etPassword.getText().toString().trim();
@@ -283,20 +259,20 @@ public class SignupActivity extends AppCompatActivity {
             etConfirmPassword.setError(getString(R.string.password_mismatch));
         }else {
 
-            progressBar.setVisibility(View.VISIBLE);
+            pB.setVisibility(View.VISIBLE);
 
             firebaseAuth = FirebaseAuth.getInstance();
 
-           firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
 
-                    progressBar.setVisibility(View.GONE);
+                    pB.setVisibility(View.GONE);
 
                     if(task.isSuccessful())
                     {
-                        firebaseUser = firebaseAuth.getCurrentUser();
-                       if (localFileUri != null)
+                        currentUser = firebaseAuth.getCurrentUser();
+                        if (localFileUri != null)
                             updateNameAndPhoto();
                         else
                             updateOnlyName();

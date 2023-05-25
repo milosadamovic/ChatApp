@@ -29,6 +29,7 @@
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.335" />
         <entry key="app/src/main/res/layout/activity_message.xml" value="0.27861842105263157" />
+        <entry key="app/src/main/res/layout/activity_network_error_layout.xml" value="0.30128205128205127" />
         <entry key="app/src/main/res/layout/activity_profile.xml" value="0.33638443935926776" />
         <entry key="app/src/main/res/layout/activity_reset_password.xml" value="0.27861842105263157" />
         <entry key="app/src/main/res/layout/activity_select_friend.xml" value="0.36196581196581196" />

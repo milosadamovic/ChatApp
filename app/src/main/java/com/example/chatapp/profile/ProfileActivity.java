@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MenuItem;
@@ -24,16 +23,11 @@ import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.example.chatapp.MainActivity;
+import com.example.chatapp.main.MainActivity;
 import com.example.chatapp.R;
-import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.common.OnGetDataListener;
-import com.example.chatapp.common.Util;
-import com.example.chatapp.findfriends.FindFriendsFragment;
+import com.example.chatapp.util.NodeNames;
 import com.example.chatapp.login.LoginActivity;
 import com.example.chatapp.password.ChangePasswordActivity;
-import com.example.chatapp.requests.RequestsFragment;
-import com.example.chatapp.signup.SignupActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -42,30 +36,35 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class ProfileActivity extends AppCompatActivity {
 
 
     private TextInputEditText etEmail, etName;
-    private String email, name;
     private ImageView ivProfile;
+    private View pB;
 
-    private FirebaseUser firebaseUser;
-    private DatabaseReference drUsers, drRequests, drTokens;
+    private DatabaseReference dbRefUsers, dbRefTokens, dbRefChats;
     private StorageReference fileStorage;
     private Uri localFileUri, serverFileUri;
     private FirebaseAuth firebaseAuth;
     private FirebaseUser currentUser;
-    private View progressBar;
 
     private static boolean isResumed = false;
+    private Map<String, String> changeFlagValue;
+    private boolean flag = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,15 +81,17 @@ public class ProfileActivity extends AppCompatActivity {
         fileStorage = FirebaseStorage.getInstance().getReference();
 
         firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser();
+        currentUser = firebaseAuth.getCurrentUser();
+        dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
+        dbRefChats = FirebaseDatabase.getInstance().getReference().child(NodeNames.CHATS);
 
-        progressBar = findViewById(R.id.progressBar);
+        pB = findViewById(R.id.progressBar);
 
-        if(firebaseUser != null)
+        if(currentUser != null)
         {
-            etName.setText(firebaseUser.getDisplayName());
-            etEmail.setText(firebaseUser.getEmail());
-            serverFileUri = firebaseUser.getPhotoUrl();
+            etName.setText(currentUser.getDisplayName());
+            etEmail.setText(currentUser.getEmail());
+            serverFileUri = currentUser.getPhotoUrl();
 
             if(serverFileUri != null)
             {
@@ -112,23 +113,20 @@ public class ProfileActivity extends AppCompatActivity {
 
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        drUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
-        drRequests = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid());
-        drTokens = FirebaseDatabase.getInstance().getReference().child(NodeNames.TOKEN).child(currentUser.getUid());
+        dbRefTokens = FirebaseDatabase.getInstance().getReference().child(NodeNames.TOKEN).child(currentUser.getUid());
 
 
        if(firebaseAuth != null)
        {
-           drTokens.setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
+           dbRefTokens.setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
                @Override
                public void onComplete(@NonNull Task<Void> task) {
 
                    if(task.isSuccessful())
                    {
-                       //drRequests.removeEventListener(RequestsFragment.valueEventListener);
-                       //drUsers.removeEventListener(FindFriendsFragment.valueEventListener);
-                       DatabaseReference databaseReferenceUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS).child(firebaseAuth.getCurrentUser().getUid());
-                       databaseReferenceUsers.child(NodeNames.ONLINE).setValue(false);
+
+                       /*DatabaseReference dbRefCurrentUser = dbRefUsers.child(currentUser.getUid());
+                       dbRefCurrentUser.child(NodeNames.ONLINE).setValue(false);*/
 
                        firebaseAuth.signOut();
                        startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
@@ -186,48 +184,92 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-
     private void removePhoto()
     {
 
-        progressBar.setVisibility(View.VISIBLE);
+        pB.setVisibility(View.VISIBLE);
 
-        UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
-                .setDisplayName(etName.getText().toString().trim())
-                .setPhotoUri(null)
-                .build();
+        String strFileName = currentUser.getUid() + ".jpg";
+        final StorageReference fileRef = fileStorage.child("images/" + strFileName);
 
-        firebaseUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
+
+        fileRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
 
-                progressBar.setVisibility(View.GONE);
-
                 if(task.isSuccessful())
                 {
-                    String userID = firebaseUser.getUid();
-                    drUsers = FirebaseDatabase.getInstance().getReference().child("Users");
+                    UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(etName.getText().toString().trim())
+                            .setPhotoUri(null)
+                            .build();
 
-                    HashMap<String,String> hashMap = new HashMap<>();
-                    hashMap.put(NodeNames.PHOTO, "");
+                    serverFileUri = null;
 
-                    drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    currentUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            Toast.makeText(ProfileActivity.this, R.string.photo_removed_successfully, Toast.LENGTH_LONG).show();
+
+                            pB.setVisibility(View.GONE);
+
+                            if(task.isSuccessful())
+                            {
+                                String currUserId = currentUser.getUid();
+
+                                HashMap<String,String> hashMap = new HashMap<>();
+                                hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
+                                hashMap.put(NodeNames.PHOTO, "");
+                                hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
+                                hashMap.put(NodeNames.ONLINE, "true");
+
+                                dbRefUsers.child(currUserId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                        if(task.isSuccessful())
+                                        {
+                                            dbRefChats.child(currUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                                    if(snapshot.exists())
+                                                    {
+                                                        changeFlagValue = ServerValue.TIMESTAMP;
+                                                        for (DataSnapshot ds : snapshot.getChildren())
+                                                        {
+
+                                                            if(ds.getKey() != null)
+                                                            {
+                                                                String userId = ds.getKey();
+                                                                dbRefChats.child(userId).child(currUserId).child(NodeNames.CHANGE_IMAGE_FLAG).setValue(changeFlagValue);
+                                                            }
+
+                                                        }
+                                                    }
+                                                    Toast.makeText(ProfileActivity.this, R.string.photo_removed_successfully, Toast.LENGTH_LONG).show();
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                                    Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
+
+                            }
+                            else
+                            {
+                                Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_remove_photo, task.getException()), Toast.LENGTH_LONG);
+                            }
                         }
                     });
+                }
 
-                }
-                else
-                {
-                    Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_remove_photo, task.getException()), Toast.LENGTH_LONG);
-                }
             }
         });
-
-
-
     }
 
     public void pickImage()
@@ -277,11 +319,10 @@ public class ProfileActivity extends AppCompatActivity {
 
     public void updateNameAndPhoto()
     {
-        String strFileName = firebaseUser.getUid() + ".jpg";
-
+        final String strFileName = currentUser.getUid() + ".jpg";
         final StorageReference fileRef = fileStorage.child("images/" + strFileName);
 
-        progressBar.setVisibility(View.VISIBLE);
+        pB.setVisibility(View.VISIBLE);
 
         /**PRVO TREBA PROVERITI DA LI USER IMA SLIKU U STORAGEU*/
 
@@ -291,7 +332,7 @@ public class ProfileActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
-                        progressBar.setVisibility(View.GONE);
+                        pB.setVisibility(View.GONE);
 
                         if(task.isSuccessful())
                         {
@@ -306,35 +347,55 @@ public class ProfileActivity extends AppCompatActivity {
                                             .setPhotoUri(serverFileUri)
                                             .build();
 
-                                    firebaseUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    currentUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if(task.isSuccessful())
                                             {
-                                                String userID = firebaseUser.getUid();
-                                                drUsers = FirebaseDatabase.getInstance().getReference().child("Users");
+                                                String currUserId = currentUser.getUid();
 
                                                 HashMap<String,String> hashMap = new HashMap<>();
                                                 hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                                                 hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                                                 hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                                                 hashMap.put(NodeNames.ONLINE, "true");
-                                                Util.incrementUserCounter(userID, new OnGetDataListener() {
-                                                    @Override
-                                                    public void onSuccess(Object data) {
-                                                        Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
-                                                    }
 
-                                                    @Override
-                                                    public void onFailure(Exception exception) {
-                                                        Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
-                                                    }
-                                                });
-
-                                                drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                dbRefUsers.child(currUserId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
                                                     public void onComplete(@NonNull Task<Void> task) {
-                                                        finish();
+
+                                                        if(task.isSuccessful())
+                                                        {
+                                                            dbRefChats.child(currUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                @Override
+                                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                                                    if(snapshot.exists())
+                                                                    {
+                                                                        changeFlagValue = ServerValue.TIMESTAMP;
+                                                                        for (DataSnapshot ds : snapshot.getChildren())
+                                                                        {
+
+                                                                            if(ds.getKey() != null)
+                                                                            {
+                                                                                String userId = ds.getKey();
+                                                                                dbRefChats.child(userId).child(currUserId).child(NodeNames.CHANGE_IMAGE_FLAG).setValue(changeFlagValue);
+                                                                            }
+
+                                                                        }
+                                                                    }
+                                                                    finish();
+                                                                }
+
+                                                                @Override
+                                                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                    Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                                                }
+                                                            });
+                                                        }
+
+
                                                     }
                                                 });
 
@@ -353,72 +414,95 @@ public class ProfileActivity extends AppCompatActivity {
         }
         else
         {
-                fileRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                fileRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
-                    public void onSuccess(Void unused) {
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if(task.isSuccessful())
+                        {
+                            fileRef.putFile(localFileUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                                    pB.setVisibility(View.GONE);
+
+                                    if (task.isSuccessful()) {
+
+                                        fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                            @Override
+                                            public void onSuccess(Uri uri) {
+
+                                                serverFileUri = uri;
+
+                                                UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
+                                                        .setDisplayName(etName.getText().toString().trim())
+                                                        .setPhotoUri(serverFileUri)
+                                                        .build();
+
+                                                currentUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        if (task.isSuccessful()) {
+
+                                                            String currUserId = currentUser.getUid();
+                                                            flag = !flag;
+
+                                                            HashMap<String, String> hashMap = new HashMap<>();
+                                                            hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
+                                                            hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
+                                                            hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
+                                                            hashMap.put(NodeNames.ONLINE, "true");
+                                                            hashMap.put(NodeNames.CHANGE_IMAGE_FLAG, String.valueOf(flag));
+
+                                                           dbRefUsers.child(currUserId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<Void> task) {
+
+                                                                    if(task.isSuccessful())
+                                                                    {
+                                                                        dbRefChats.child(currUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                            @Override
+                                                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                                                                if(snapshot.exists())
+                                                                                {
+                                                                                    changeFlagValue = ServerValue.TIMESTAMP;
+                                                                                    for (DataSnapshot ds : snapshot.getChildren())
+                                                                                    {
+                                                                                        if(ds.getKey() != null)
+                                                                                        {
+                                                                                            String userId = ds.getKey();
+                                                                                            dbRefChats.child(userId).child(currUserId).child(NodeNames.CHANGE_IMAGE_FLAG).setValue(changeFlagValue);
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                finish();
+                                                                            }
+
+                                                                            @Override
+                                                                            public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                                Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                                                            }
+                                                                        });
+                                                                    }
+
+                                                                }
+                                                            });
 
 
-                        fileRef.putFile(localFileUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
-                                progressBar.setVisibility(View.GONE);
-
-                                if (task.isSuccessful()) {
-                                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                        @Override
-                                        public void onSuccess(Uri uri) {
-
-                                            serverFileUri = uri;
-
-                                            UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
-                                                    .setDisplayName(etName.getText().toString().trim())
-                                                    .setPhotoUri(serverFileUri)
-                                                    .build();
-
-                                            firebaseUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<Void> task) {
-                                                    if (task.isSuccessful()) {
-                                                        String userID = firebaseUser.getUid();
-                                                        drUsers = FirebaseDatabase.getInstance().getReference().child("Users");
-
-                                                        HashMap<String, String> hashMap = new HashMap<>();
-                                                        hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
-                                                        hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
-                                                        hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
-                                                        hashMap.put(NodeNames.ONLINE, "true");
-                                                        Util.incrementUserCounter(userID, new OnGetDataListener() {
-                                                            @Override
-                                                            public void onSuccess(Object data) {
-                                                                Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
-                                                            }
-
-                                                            @Override
-                                                            public void onFailure(Exception exception) {
-                                                                Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
-                                                            }
-                                                        });
-
-                                                        drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                            @Override
-                                                            public void onComplete(@NonNull Task<Void> task) {
-                                                                finish();
-                                                            }
-                                                        });
-
-                                                    } else {
-                                                        Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
+                                                        } else {
+                                                            Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
+                                                        }
                                                     }
-                                                }
-                                            });
-                                        }
-                                    });
+                                                });
+                                            }
+                                        });
+                                    }
                                 }
-                            }
-                        });
-
-
+                            });
+                        }
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -428,103 +512,70 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 });
         }
-
-       /* fileRef.putFile(localFileUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-
-                progressBar.setVisibility(View.GONE);
-
-                if(task.isSuccessful())
-                {
-                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-
-                            serverFileUri = uri;
-
-                            UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(etName.getText().toString().trim())
-                                    .setPhotoUri(serverFileUri)
-                                    .build();
-
-                            firebaseUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if(task.isSuccessful())
-                                    {
-                                        String userID = firebaseUser.getUid();
-                                        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
-
-                                        HashMap<String,String> hashMap = new HashMap<>();
-                                        hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
-                                        hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
-
-                                        databaseReference.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                finish();
-                                            }
-                                        });
-
-                                    }
-                                    else
-                                    {
-                                        Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-            }
-        }); */
-
     }
 
     public void updateOnlyName()
     {
 
-        progressBar.setVisibility(View.VISIBLE);
+        pB.setVisibility(View.VISIBLE);
 
         UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
                 .setDisplayName(etName.getText().toString().trim())
                 .build();
 
-        firebaseUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
+        currentUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
 
-                progressBar.setVisibility(View.GONE);
+                pB.setVisibility(View.GONE);
 
                 if(task.isSuccessful())
                 {
-                    String userID = firebaseUser.getUid();
-                    drUsers = FirebaseDatabase.getInstance().getReference().child("Users");
+                    String currUserId = currentUser.getUid();
 
                     HashMap<String,String> hashMap = new HashMap<>();
                     hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                     hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
                     hashMap.put(NodeNames.ONLINE, "true");
-                    Util.incrementUserCounter(userID, new OnGetDataListener() {
-                        @Override
-                        public void onSuccess(Object data) {
-                            Log.d("ProfileActivity", "PRIVATE_ID Successfully added to User" );
-                        }
-
-                        @Override
-                        public void onFailure(Exception exception) {
-                            Log.d("ProfileActivity", "UpdateOnlyName, exception " + exception);
-                        }
-                    });
 
                     if(serverFileUri != null) hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                     else hashMap.put(NodeNames.PHOTO, "");
 
-                    drUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    dbRefUsers.child(currUserId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            finish();
+                            if(task.isSuccessful())
+                            {
+                                dbRefChats.child(currUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                        if(snapshot.exists())
+                                        {
+                                            changeFlagValue = ServerValue.TIMESTAMP;
+                                            for (DataSnapshot ds : snapshot.getChildren())
+                                            {
+
+                                                if(ds.getKey() != null)
+                                                {
+                                                    String userId = ds.getKey();
+                                                    dbRefChats.child(userId).child(currUserId).child(NodeNames.CHANGE_IMAGE_FLAG).setValue(changeFlagValue);
+                                                }
+
+                                            }
+                                        }
+                                        finish();
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                        Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                    }
+                                });
+                            }
+
                         }
                     });
 

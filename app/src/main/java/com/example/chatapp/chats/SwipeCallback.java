@@ -14,9 +14,9 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatapp.R;
-import com.example.chatapp.common.Constants;
-import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.common.Util;
+import com.example.chatapp.util.Constants;
+import com.example.chatapp.util.NodeNames;
+import com.example.chatapp.util.Util;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,7 +24,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -93,19 +92,10 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
                                                     @Override
                                                     public void onComplete(@NonNull Task<Void> task) {
 
-
-                                                            if(task.isSuccessful())
+                                                          if(!task.isSuccessful())
                                                             {
-                                                                String title = currentUser.getDisplayName() + " deleted you from his friends";
-                                                                String message = "You are no longer friends with " + currentUser.getDisplayName();
-
-                                                                Util.sendNotification(viewHolder.itemView.getContext(),title, message, chatUserId,  currentUser.getUid(), Constants.NOTIFICATION_TYPE_DELETED);
-                                                                chatList.remove(position);
-                                                                mAdapter.notifyItemRemoved(position);
-
+                                                                handleException(viewHolder,task.getException());
                                                             }
-                                                            else handleException(viewHolder,task.getException());
-
                                                     }
                                                 });
                                             }
@@ -135,10 +125,6 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
 
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
-
-
-       // mAdapter.onItemSwiped(viewHolder.getAdapterPosition());
-
 
     }
 

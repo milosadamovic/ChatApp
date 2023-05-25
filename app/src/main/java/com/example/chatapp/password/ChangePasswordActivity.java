@@ -3,16 +3,12 @@ package com.example.chatapp.password;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.FocusFinder;
 import android.view.View;
 import android.widget.Toast;
 
-import com.example.chatapp.MainActivity;
 import com.example.chatapp.R;
-import com.example.chatapp.profile.ProfileActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
@@ -25,7 +21,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
 
     private TextInputEditText etOldPassword, etNewPassword, etConfirmPassword;
-    private View progressBar;
+    private View pB;
     private static boolean isResumed = false;
 
     @Override
@@ -36,7 +32,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
         etOldPassword = findViewById(R.id.etOldPassword);
         etNewPassword = findViewById(R.id.etNewPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
-        progressBar = findViewById(R.id.progressBar);
+        pB = findViewById(R.id.progressBar);
     }
 
 
@@ -56,29 +52,29 @@ public class ChangePasswordActivity extends AppCompatActivity {
             etConfirmPassword.setError(getString(R.string.password_mismatch));
         }else{
 
-            progressBar.setVisibility(View.VISIBLE);
+            pB.setVisibility(View.VISIBLE);
 
             FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-            FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+            FirebaseUser currentUser = firebaseAuth.getCurrentUser();
 
-            if(firebaseUser != null)
+            if(currentUser != null)
             {
 
-                String email = firebaseUser.getEmail();
+                String email = currentUser.getEmail();
 
                 AuthCredential credential = EmailAuthProvider.getCredential(email, oldPassword);
 
-                firebaseUser.reauthenticate(credential)
+                currentUser.reauthenticate(credential)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
 
-                                    firebaseUser.updatePassword(newPassword).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    currentUser.updatePassword(newPassword).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
 
-                                            progressBar.setVisibility(View.GONE);
+                                            pB.setVisibility(View.GONE);
 
                                             if(task.isSuccessful())
                                             {

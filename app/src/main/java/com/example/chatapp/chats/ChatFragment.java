@@ -18,9 +18,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.chatapp.R;
-import com.example.chatapp.common.Constants;
-import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.common.Util;
+import com.example.chatapp.util.Constants;
+import com.example.chatapp.util.NodeNames;
+import com.example.chatapp.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -28,7 +28,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -38,18 +37,14 @@ import java.util.List;
 public class ChatFragment extends Fragment{
 
     private RecyclerView rvChatList;
-    private View progressBar;
     private TextView tvEmptyChatList;
-    private ChatListAdapter chatListAdapter;
+    private ChatListAdapter adapter;
     private List<ChatListModel> chatListModelList;
-
-    private DatabaseReference drChats, drUsers;
-    private FirebaseUser currentUser;
-
-    private ChildEventListener childEventListener;
-    private Query query;
-
     public static List<String> userIds;
+
+    private DatabaseReference dbRefChats, dbRefUsers;
+    private FirebaseUser currentUser;
+    private ChildEventListener childEventListener;
 
     SwipeCallback swipeCallback;
     ItemTouchHelper itemTouchHelper;
@@ -84,46 +79,41 @@ public class ChatFragment extends Fragment{
         rvChatList = view.findViewById(R.id.rvChats);
         tvEmptyChatList = view.findViewById(R.id.tvEmptyChatList);
 
-        userIds = new ArrayList<>();
-        chatListModelList = new ArrayList<>();
-        chatListAdapter = new ChatListAdapter(getActivity(), chatListModelList);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-
-        // last message is showing in chat
         linearLayoutManager.setReverseLayout(true);
         linearLayoutManager.setStackFromEnd(true);
         rvChatList.setLayoutManager(linearLayoutManager);
 
-        rvChatList.setAdapter(chatListAdapter);
+        userIds = new ArrayList<>();
+        chatListModelList = new ArrayList<>();
+        adapter = new ChatListAdapter(getActivity(), chatListModelList);
+        rvChatList.setAdapter(adapter);
 
-        progressBar = view.findViewById(R.id.progressBar);
-
-        drUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
+        dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        drChats = FirebaseDatabase.getInstance().getReference().child(NodeNames.CHATS).child(currentUser.getUid());
 
-        query = drChats.orderByChild(NodeNames.TIME_STAMP);
-
+        /**LINIJA ISPOD PRAVI PROBLEM KOD LOGOUTA*/
+        dbRefChats = FirebaseDatabase.getInstance().getReference().child(NodeNames.CHATS).child(currentUser.getUid());
 
         childEventListener = new ChildEventListener() {
 
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                    updateList(snapshot, true, snapshot.getKey());
+                    updateList(snapshot, 0, snapshot.getKey());
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                    updateList(snapshot, false, snapshot.getKey());
+                    updateList(snapshot, 1, snapshot.getKey());
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
-
+                   updateList(snapshot, 2, snapshot.getKey());
             }
 
             @Override
@@ -137,21 +127,19 @@ public class ChatFragment extends Fragment{
             }
         };
 
-        query.addChildEventListener(childEventListener);
 
-        //progressBar.setVisibility(View.VISIBLE);
         tvEmptyChatList.setVisibility(View.VISIBLE);
 
-        swipeCallback = new SwipeCallback(chatListAdapter,chatListModelList);
+        dbRefChats.addChildEventListener(childEventListener);
+        swipeCallback = new SwipeCallback(adapter,chatListModelList);
         itemTouchHelper = new ItemTouchHelper(swipeCallback);
         itemTouchHelper.attachToRecyclerView(rvChatList);
 
     }
 
 
-    private void updateList(DataSnapshot snapshot, boolean isNew, String userId)
+    private void updateList(DataSnapshot snapshot, int flag, String userId)
     {
-             progressBar.setVisibility(View.GONE);
              tvEmptyChatList.setVisibility(View.GONE);
              final String  lastMessage, lastMessageTime ,unreadCount;
 
@@ -166,7 +154,7 @@ public class ChatFragment extends Fragment{
 
              unreadCount = snapshot.child(NodeNames.UNREAD_COUNT).getValue() == null ? "0" : snapshot.child(NodeNames.UNREAD_COUNT).getValue().toString();
 
-             drUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+        dbRefUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
                  @Override
                  public void onDataChange(@NonNull DataSnapshot snapshot) {
 
@@ -176,23 +164,27 @@ public class ChatFragment extends Fragment{
 
                      ChatListModel chatListModel = new ChatListModel(userId, fullName, photoName, unreadCount, lastMessage, lastMessageTime);
 
-                     Log.d("ChatFragment. updateList()", "fullName: " + fullName);
-                     Log.d("ChatFragment. updateList()", "photoName: " + photoName);
-                     Log.d("ChatFragment, updateList()", "isNew: " + isNew);
-
-                     if(isNew)
+                     switch (flag)
                      {
-                         chatListModelList.add(chatListModel);
-                         userIds.add(userId);
-                         int indexOfUser = userIds.indexOf(userId);
-                         chatListAdapter.notifyItemChanged(indexOfUser);
-                     }
+                         case 0:
+                             userIds.add(userId);
+                             int indexOfUser = userIds.indexOf(userId);
+                             chatListModelList.add(chatListModel);
+                             adapter.notifyItemInserted(indexOfUser);
+                             break;
 
-                     else
-                     {
-                        int indexOfChangedUser = userIds.indexOf(userId);
-                        chatListModelList.set(indexOfChangedUser, chatListModel);
-                        chatListAdapter.notifyItemChanged(indexOfChangedUser);
+                         case 1:
+                             int indexOfChangedUser = userIds.indexOf(userId);
+                             chatListModelList.set(indexOfChangedUser, chatListModel);
+                             adapter.notifyItemChanged(indexOfChangedUser);
+                             break;
+
+                         case 2:
+                             int indexOfRemovedUser = userIds.indexOf(userId);
+                             userIds.remove(userId);
+                             chatListModelList.remove(indexOfRemovedUser);
+                             adapter.notifyItemRemoved(indexOfRemovedUser);
+
                      }
 
                  }
@@ -225,7 +217,7 @@ public class ChatFragment extends Fragment{
     @Override
     public void onDestroy() {
         super.onDestroy();
-        query.removeEventListener(childEventListener);
+        dbRefChats.removeEventListener(childEventListener);
     }
 
     @Override

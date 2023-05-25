@@ -1,11 +1,9 @@
-package com.example.chatapp;
+package com.example.chatapp.main;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.Intent;
@@ -14,27 +12,21 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.example.chatapp.chats.ChatFragment;
-import com.example.chatapp.chats.SwipeCallback;
-import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.findfriends.FindFriendsFragment;
+import com.example.chatapp.R;
 import com.example.chatapp.profile.ProfileActivity;
-import com.example.chatapp.requests.RequestsFragment;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
 
-    public static TabLayout tabLayout;
+    private TabLayout tabLayout;
     private ViewPager2 viewPager;
-    private int tabPosition;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
         Log.d("MainActivity", "onCreate() called");
@@ -43,18 +35,27 @@ public class MainActivity extends AppCompatActivity {
 
         tabLayout = findViewById(R.id.tabMain);
         viewPager = findViewById(R.id.vpMain);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Lifecycle lifecycle = this.getLifecycle();
 
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        DatabaseReference databaseReferenceUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS).child(firebaseAuth.getCurrentUser().getUid());
-        databaseReferenceUsers.child(NodeNames.ONLINE).setValue(true);
-        databaseReferenceUsers.child(NodeNames.ONLINE).onDisconnect().setValue(false);
 
-        setViewPager();
+
+        /**PROBLEM KOD LINIJE ISPOD KOD LOGOUTA*/
+       // DatabaseReference dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS).child(firebaseAuth.getCurrentUser().getUid());
+        //dbRefUsers.child(NodeNames.ONLINE).setValue(true);
+        /**POZIVA SE KADA KORISNIK ZATVORI APLIKACIJU ILI SE ODJAVI - KASNIJE SE POZIVA AKO DODJE DO NASILNOG PREKIDA MREZE*/
+        //dbRefUsers.child(NodeNames.ONLINE).onDisconnect().setValue(false);
+
+        UtilMain.setViewPager(tabLayout, viewPager, fragmentManager, lifecycle);
 
     }
 
 
-    class Adapter extends FragmentStateAdapter {
+    /**********ADAPTER****************/
+    /*class Adapter extends FragmentStateAdapter {
+
+        final int tabCount = 3;
 
         public Adapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
             super(fragmentManager, lifecycle);
@@ -82,13 +83,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return tabLayout.getTabCount();
+            return tabCount;
         }
-    }
-
-
-
-    private void setViewPager()
+    }*/
+   /*************UTILMAIN*************/
+   /* private void setViewPager()
     {
         tabLayout.addTab(tabLayout.newTab().setCustomView(R.layout.tab_chat));
         tabLayout.addTab(tabLayout.newTab().setCustomView(R.layout.tab_requests));
@@ -103,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
-                tabPosition = tab.getPosition();
             }
 
             @Override
@@ -134,7 +132,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-    }
+    }*/
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

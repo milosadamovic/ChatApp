@@ -1,8 +1,5 @@
 package com.example.chatapp.notifications;
 
-import static java.lang.System.load;
-
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -19,22 +16,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.example.chatapp.MainActivity;
 import com.example.chatapp.R;
 import com.example.chatapp.chats.ChatActivity;
-import com.example.chatapp.common.Constants;
-import com.example.chatapp.common.Util;
-import com.example.chatapp.findfriends.FindFriendsFragment;
+import com.example.chatapp.util.Constants;
+import com.example.chatapp.util.Util;
 import com.example.chatapp.login.LoginActivity;
 import com.example.chatapp.password.ChangePasswordActivity;
 import com.example.chatapp.profile.ProfileActivity;
-import com.example.chatapp.requests.RequestsFragment;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -48,6 +40,7 @@ public class ChatMessagingService extends FirebaseMessagingService {
 
         Util.updateDeviceToken(this, s);
     }
+
 
     /**TODO PRVI KORAK
      * KADA JEDAN KORISNIK POSALJE FRIEND REQUEST, KOD DRUGOG NA TABU FIND VISE NEMA KORISNIKA KOJI MU JE POSLAO ZAHTEV, ALI SE POJAVLJUJE U REQUESTIMA

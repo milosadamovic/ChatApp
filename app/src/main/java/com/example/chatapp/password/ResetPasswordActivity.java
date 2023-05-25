@@ -27,7 +27,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
     private TextView tvMessage;
     private LinearLayout llResetPassword, llMessage;
     private Button btnRetry;
-    private View progressBar;
+    private View pB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,10 +39,12 @@ public class ResetPasswordActivity extends AppCompatActivity {
         llMessage = findViewById(R.id.llMessage);
         llResetPassword = findViewById(R.id.llResetPassword);
         btnRetry = findViewById(R.id.btnRetry);
-        progressBar = findViewById(R.id.progressBar);
+        pB = findViewById(R.id.progressBar);
 
     }
 
+
+    /**POTREBNA PROVERA DA LI IMA KONEKCIJE SA MREZOM PROVERA DA LI IMA KONEKCIJE SA MREZOM*/
     public void btnResetPasswordClick(View view)
     {
         String email = etEmail.getText().toString().trim();
@@ -54,14 +56,14 @@ public class ResetPasswordActivity extends AppCompatActivity {
         else
         {
 
-            progressBar.setVisibility(View.VISIBLE);
+            pB.setVisibility(View.VISIBLE);
 
             FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
             firebaseAuth.sendPasswordResetEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
 
-                    progressBar.setVisibility(View.GONE);
+                    pB.setVisibility(View.GONE);
 
                     llResetPassword.setVisibility(View.GONE);
                     llMessage.setVisibility(View.VISIBLE);

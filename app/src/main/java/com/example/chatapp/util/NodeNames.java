@@ -1,4 +1,4 @@
-package com.example.chatapp.common;
+package com.example.chatapp.util;
 
 public class NodeNames {
 
@@ -12,8 +12,7 @@ public class NodeNames {
     public static final String EMAIL = "email";
     public static final String ONLINE = "online";
     public static final String PHOTO = "photo";
-    public static final String PRIVATE_ID = "private_id";
-
+    public static final String CHANGE_IMAGE_FLAG = "change_image_flag";
     public static final String REQUEST_TYPE = "request_type";
 
     public static final String TIME_STAMP = "timestamp";
@@ -31,6 +30,6 @@ public class NodeNames {
     public static final String DEVICE_TOKEN = "device_token";
 
 
-    public static final String REQUEST_STATUS = "request_status";
-    public static final String REPLY_STATUS = "reply_status";
+
+
 }

@@ -1,4 +1,4 @@
-package com.example.chatapp.common;
+package com.example.chatapp.util;
 
 public class Extras {
 

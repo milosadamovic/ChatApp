@@ -9,10 +9,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.example.chatapp.MainActivity;
-import com.example.chatapp.MessageActivity;
+import com.example.chatapp.main.MainActivity;
+import com.example.chatapp.NetworkError;
 import com.example.chatapp.R;
-import com.example.chatapp.common.Util;
+import com.example.chatapp.util.Util;
 import com.example.chatapp.password.ResetPasswordActivity;
 import com.example.chatapp.signup.SignupActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -22,38 +22,36 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.messaging.FirebaseMessaging;
-
-import java.util.function.ToDoubleBiFunction;
 
 public class LoginActivity extends AppCompatActivity {
 
     private TextInputEditText etEmail, etPassword;
-    private String email,password;
-    private View progressBar;
+    private View pB;
+
+    private FirebaseUser currentUser;
     private FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        /**DODATA LINIJA ISPOD*/
+        /**INICIJALIZACIJA FIREBASE-A*/
         FirebaseApp.initializeApp(this);
+
 
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
-
-        progressBar = findViewById(R.id.progressBar);
+        pB = findViewById(R.id.progressBar);
 
     }
 
 
     public void btnLoginClick(View v) {
 
-        email = etEmail.getText().toString().trim();
-        password = etPassword.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
 
         if (email.equals(""))
         {
@@ -65,40 +63,29 @@ public class LoginActivity extends AppCompatActivity {
         }
         else
         {
+
             if(Util.connectionAvailable(this))
             {
-                progressBar.setVisibility(View.VISIBLE);
+                pB.setVisibility(View.VISIBLE);
                 FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
                 firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        progressBar.setVisibility(View.GONE);
+
+                        pB.setVisibility(View.GONE);
                         if (task.isSuccessful()) {
-                            FirebaseMessaging.getInstance().getToken()
-                                    .addOnCompleteListener(new OnCompleteListener<String>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<String> task) {
-                                            if (!task.isSuccessful()) {
-                                                Toast.makeText(LoginActivity.this, getString(R.string.failed_to_get_token, task.getException()), Toast.LENGTH_SHORT).show();
-                                                return;
-                                            }
-
-                                            String token = task.getResult();
-                                            Util.updateDeviceToken(LoginActivity.this, token);
-
-                                        }
-                                    });
+                            UtilLogin.getToken(getBaseContext());
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         } else {
-                            Toast.makeText(LoginActivity.this, "Login Failed: " + task.getException(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getBaseContext(), "Login Failed: " + task.getException(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
             }
             else
             {
-                startActivity(new Intent(LoginActivity.this, MessageActivity.class));
+                startActivity(new Intent(LoginActivity.this, NetworkError.class));
             }
         }
     }
@@ -115,8 +102,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-
-    // TODO AUTOMATIC LOGIN, IF THE USER IS LOGGED IN HE DOESNT HAVE TO LOGIN AGAIN
     @Override
     protected void onStart() {
 
@@ -124,38 +109,50 @@ public class LoginActivity extends AppCompatActivity {
         super.onStart();
 
         firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser();
+        currentUser = firebaseAuth.getCurrentUser();
 
 
-        if(firebaseUser != null)
+        if(currentUser != null)
         {
+            /**NAKON PRIJAVLJIVANJA NOVIH KORISNIKA OVDE IM SE GENERISE TOKEN, STARI KORISNISCIMA OSTAJE PRETHODNI UKOLIKO SE NISU ODJAVILI*/
+            UtilLogin.getToken(this);
 
-            /**NAKON REGISTRACIJE(SIGN-UP) MORAMO KREIRATI TOKEN*/
-            FirebaseMessaging.getInstance().getToken()
-                    .addOnCompleteListener(new OnCompleteListener<String>() {
-                        @Override
-                        public void onComplete(@NonNull Task<String> task) {
-                            if (!task.isSuccessful()) {
-                               Toast.makeText(LoginActivity.this, getString(R.string.failed_to_get_token, task.getException()), Toast.LENGTH_SHORT).show();
-                               return;
-                            }
-
-                            String token = task.getResult();
-                            Util.updateDeviceToken(LoginActivity.this, token);
-
-                        }
-                    });
 
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
+
         }
 
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("LoginActivity", "onResume() called");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("LoginActivity", "onPause() called");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("LoginActivity", "onStop() called");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("LoginActivity", "onDestroy() called");
+    }
+
+    @Override
     public void onBackPressed() {
 
-        if(firebaseUser == null) return;
+        if(currentUser == null) return;
         super.onBackPressed();
     }
 }

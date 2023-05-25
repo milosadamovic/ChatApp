@@ -1,29 +1,19 @@
 package com.example.chatapp.chats;
 
-import static android.os.Environment.getExternalStorageDirectory;
 import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
@@ -46,12 +36,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.example.chatapp.MainActivity;
+import com.example.chatapp.main.MainActivity;
 import com.example.chatapp.R;
-import com.example.chatapp.common.Constants;
-import com.example.chatapp.common.Extras;
-import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.common.Util;
+import com.example.chatapp.util.Constants;
+import com.example.chatapp.util.Extras;
+import com.example.chatapp.util.NodeNames;
+import com.example.chatapp.util.Util;
 import com.example.chatapp.selectfriend.SelectFriendActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -76,11 +66,9 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ChatActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -97,9 +85,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private MessagesAdapter messagesAdapter;
     private List<MessageModel> messageList;
 
-
-    /*private int currentPage = 1;
-    private static final int RECORD_PER_PAGE = 30;*/
 
     private static final int REQUEST_CODE_PICK_IMAGE = 101;
     private static final int REQUEST_CODE_CAPTURE_IMAGE = 102;

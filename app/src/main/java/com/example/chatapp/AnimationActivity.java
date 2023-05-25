@@ -3,7 +3,6 @@ package com.example.chatapp;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -12,27 +11,27 @@ import android.widget.TextView;
 
 import com.example.chatapp.login.LoginActivity;
 
-public class SplashActivity extends AppCompatActivity {
+public class AnimationActivity extends AppCompatActivity {
 
 
-    private ImageView ivSplash;
-    private TextView tvSplash;
-    private Animation animation;
+    private ImageView ivLogo;
+    private TextView tvTitle;
+    private Animation scaleAnimation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
+        setContentView(R.layout.activity_animation_layout);
 
         if(getSupportActionBar() != null)
             getSupportActionBar().hide();
 
-        ivSplash = findViewById(R.id.ivSplash);
-        tvSplash = findViewById(R.id.tvSplash);
+        ivLogo = findViewById(R.id.ivLogo);
+        tvTitle = findViewById(R.id.tvTitle);
 
-        animation = AnimationUtils.loadAnimation(this, R.anim.splash_animation);
+        scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.scale_animation);
 
-        animation.setAnimationListener(new Animation.AnimationListener() {
+        scaleAnimation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
 
@@ -41,7 +40,7 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void onAnimationEnd(Animation animation) {
 
-                    startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                    startActivity(new Intent(AnimationActivity.this, LoginActivity.class));
                     finish();
             }
 
@@ -56,7 +55,7 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        ivSplash.startAnimation(animation);
-        tvSplash.startAnimation(animation);
+        ivLogo.startAnimation(scaleAnimation);
+        tvTitle.startAnimation(scaleAnimation);
     }
 }

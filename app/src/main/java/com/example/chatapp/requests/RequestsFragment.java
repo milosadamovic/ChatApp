@@ -16,19 +16,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.chatapp.R;
-import com.example.chatapp.common.Constants;
-import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.common.Util;
-import com.example.chatapp.findfriends.FindFriendsFragment;
+import com.example.chatapp.util.Constants;
+import com.example.chatapp.util.NodeNames;
+import com.example.chatapp.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,17 +35,16 @@ import java.util.List;
 public class RequestsFragment extends Fragment {
 
 
-    private RecyclerView rvRequests;
-    private RequestAdapter adapter;
-    private List<RequestModel> requestModelList;
     private TextView tvEmptyRequestsList;
+    private View pB;
+    private RecyclerView rvRequests;
 
-    public DatabaseReference drRequests, drUsers;
+    private RequestAdapter adapter;
     private FirebaseUser currentUser;
-    private View progressBar;
-
-    private ValueEventListener valueEventListener;
-
+    private DatabaseReference dbRefFriendRequests,dbRefUsers;
+    private  List<String> userIds;
+    private List<RequestModel> requestModelList;
+    private ChildEventListener childEventListener;
 
     public RequestsFragment() {
         // Required empty public constructor
@@ -70,21 +67,63 @@ public class RequestsFragment extends Fragment {
 
         rvRequests = view.findViewById(R.id.rvRequests);
         tvEmptyRequestsList = view.findViewById(R.id.tvEmptyRequestsList);
-        progressBar = view.findViewById(R.id.progressBar);
+        pB = view.findViewById(R.id.progressBar);
 
         rvRequests.setLayoutManager( new LinearLayoutManager(getActivity()));
+
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
         requestModelList = new ArrayList<>();
+        userIds = new ArrayList<>();
+        dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
+        dbRefFriendRequests = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid());
+
         adapter = new RequestAdapter(getActivity(), requestModelList);
         rvRequests.setAdapter(adapter);
 
-        currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        drUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
-        drRequests = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid());
 
-        progressBar.setVisibility(View.VISIBLE);
         tvEmptyRequestsList.setVisibility(View.VISIBLE);
 
-        loadData();
+        requestModelList.clear();
+        userIds.clear();
+
+        childEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                Log.d("RequestFragment", "onChildAdded() called");
+                updateRequests(snapshot.getKey());
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                Log.d("RequestFragment", "onChildChanged() called");
+                updateRequests(snapshot.getKey());
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                Log.d("RequestFragment", "onChildRemoved() called");
+               updateRequests(snapshot.getKey());
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+                Toast.makeText(getActivity(), getActivity().getString(R.string.failed_to_fetch_friend_requests, error.getMessage()),Toast.LENGTH_SHORT).show();
+                pB.setVisibility(View.GONE);
+            }
+        };
+
+        dbRefFriendRequests.addChildEventListener(childEventListener);
+
 
     }
 
@@ -113,68 +152,85 @@ public class RequestsFragment extends Fragment {
         super.onStop();
     }
 
-    public void loadData()
-    {
-        valueEventListener = new ValueEventListener() {
 
+    public  void updateRequests(String userId) {
+
+        pB.setVisibility(View.GONE);
+
+        /**U SLUCAJU REQUEST_STATUS_SENT NISTA SE NE PRIKAZUJE
+         // U SLUCAJU REQUEST_STATUS_RECEIVED PRIKAZUJEMO KORISNIKA
+         //U SLUCAJU REQUEST_STATUS_ACCEPTER IZBACUJEMO KORISNIKA */
+
+        dbRefFriendRequests.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressBar.setVisibility(View.GONE);
-                requestModelList.clear();
 
-                for(DataSnapshot ds : snapshot.getChildren())
+                if(snapshot.exists())
                 {
-                    if(ds.exists())
+                    String requestType = snapshot.child(NodeNames.REQUEST_TYPE).getValue().toString();
+                    if (requestType.equals(Constants.REQUEST_STATUS_RECEIVED))
                     {
-                        String requestType = ds.child(NodeNames.REQUEST_TYPE).getValue().toString();
-                        if(requestType.equals(Constants.REQUEST_STATUS_RECEIVED))
-                        {
-                            final String userId = ds.getKey();
-                            drUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                                    final String userName = snapshot.child(NodeNames.NAME).getValue().toString();
-                                    String photoName = "";
+                        dbRefUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                                    if(snapshot.child(NodeNames.PHOTO).getValue() != null)
-                                    {
-                                        // photoName = snapshot.child(NodeNames.PHOTO).getValue().toString();
-                                        photoName = userId + ".jpg";
-                                    }
+                                String userName = snapshot.child(NodeNames.NAME).getValue() != null ? snapshot.child(NodeNames.NAME).getValue().toString() : "";
+                                String photoName = (snapshot.child(NodeNames.PHOTO).getValue()) != null ? userId + ".jpg" : "";
 
-                                    RequestModel requestModel = new RequestModel(userId, userName, photoName);
-                                    requestModelList.add(requestModel);
-                                    adapter.notifyDataSetChanged();
-                                    tvEmptyRequestsList.setVisibility(View.GONE);
+                                RequestModel requestModel = new RequestModel(userId, userName, photoName);
+                                userIds.add(userId);
+                                requestModelList.add(requestModel);
+                                int indexOfUser = userIds.indexOf(userId);
+                                adapter.notifyItemInserted(indexOfUser);
+                                tvEmptyRequestsList.setVisibility(View.GONE);
 
-                                    /**TEST
-                                     * FindFriendsFragment.refresh(getContext())*/
+                            }
 
-                                    Log.d("RequestFragment", "Hello from RequestFragment");
-                                }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
-
-                                    Toast.makeText(getActivity(), getActivity().getString(R.string.failed_to_fetch_friend_requests, error.getMessage()),Toast.LENGTH_SHORT).show();
-                                    progressBar.setVisibility(View.GONE);
-                                }
-                            });
-                        }
-                        Log.d("RequestFragment", "request type: " + requestType);
+                                Toast.makeText(getContext(), getString(R.string.failed_to_fetch_friend_requests, error.getMessage()), Toast.LENGTH_SHORT).show();
+                                pB.setVisibility(View.GONE);
+                            }
+                        });
                     }
-                   // Log.d("RequestFragment", "Hello from RequestFragment");
+                    else if (requestType.equals(Constants.REQUEST_STATUS_ACCEPTED) && userIds.contains(userId))
+                    {
+                        int indexOfUser = userIds.indexOf(userId);
+                        userIds.remove(userId);
+                        requestModelList.remove(indexOfUser);
+                        adapter.notifyItemRemoved(indexOfUser);
+                    }
                 }
+                else
+                {
+                    /***KANCELOVAN ZAHTEV
+                     // ODBIJEN ZAHTEV AKO JE TIPA REQUEST_STATUS_RECEIVED */
+                    if(userIds.contains(userId))
+                    {
+                        int indexOfUser = userIds.indexOf(userId);
+                        userIds.remove(userId);
+                        requestModelList.remove(indexOfUser);
+                        adapter.notifyItemRemoved(indexOfUser);
+                    }
 
+                    /**KANCELOVAN ZAHTEV
+                     //ODBIJEN ZAHTEV AKO JE TIPA REQUEST_STATUS_SENT
+                     // DO NOTHING */
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getActivity(), getActivity().getString(R.string.failed_to_fetch_friend_requests, error.getMessage()),Toast.LENGTH_SHORT).show();
-                progressBar.setVisibility(View.GONE);
-            }
 
-        };
-        drRequests.addValueEventListener(valueEventListener);
+                Toast.makeText(getContext(), getString(R.string.failed_to_fetch_friend_requests, error.getMessage()), Toast.LENGTH_SHORT).show();
+                pB.setVisibility(View.GONE);
+
+            }
+        });
+
     }
+
+
 }

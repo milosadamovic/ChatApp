@@ -1,4 +1,4 @@
-package com.example.chatapp.common;
+package com.example.chatapp.util;
 
 import android.app.ActivityManager;
 import android.app.NotificationManager;
@@ -30,9 +30,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
@@ -43,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Util {
+
 
 
     public static boolean connectionAvailable(Context context)
@@ -56,6 +55,7 @@ public class Util {
 
     }
 
+    /**getApplicationContext() should be passed*/
     public static void updateDeviceToken(Context context, String token)
     {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
@@ -83,11 +83,14 @@ public class Util {
 
                 }
             });
+
+            Log.d("TEST", "updateDeviceToken() called");
         }
 
     }
 
 
+    /**getApplicationContext() should be passed*/
     public static void sendNotification(Context context, String title, String message, String chatUserId, String userId, String notificationType)
     {
 
@@ -180,6 +183,7 @@ public class Util {
     }
 
 
+    /**getApplicationContext() should be passed*/
     public static void updateChatDetails(Context context, String currentUserId, String chatUserId, String lastMessage, String messageType)
     {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
@@ -286,47 +290,5 @@ public class Util {
     }
 
 
-
-    /**PRAVLJENJE PRIVATE_ID ZA SVAKOG USERA PRILIKOM PRIJAVLIVANJA I PRILIKOM UPDEJTOVANJA PROFILA*/
-    public static void incrementUserCounter(final String userId, final  OnGetDataListener listener) {
-
-
-        DatabaseReference drUserCounter = FirebaseDatabase.getInstance().getReference().child("UserCounter");
-        final DatabaseReference[] drUsers = {FirebaseDatabase.getInstance().getReference().child("Users")};
-
-        drUserCounter.child("userCounter").runTransaction(new Transaction.Handler() {
-            @NonNull
-            @Override
-            public Transaction.Result doTransaction(@NonNull MutableData mutableData) {
-                Long currentValue = mutableData.getValue(Long.class);
-
-                if (currentValue == null) {
-                    mutableData.setValue(1);
-                } else {
-                    mutableData.setValue(currentValue + 1);
-                }
-                return Transaction.success(mutableData);
-            }
-
-            @Override
-            public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
-                if (databaseError != null)  Log.d("Util", "incrementUserCounter:onComplete: " + databaseError.getMessage());
-                else if(b) {
-                    HashMap<String,Object> hashMap = new HashMap<>();
-                    hashMap.put(NodeNames.PRIVATE_ID, dataSnapshot.getValue());
-
-                    drUsers[0].child(userId).updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if(task.isSuccessful())
-                                Log.d("Util","PRIVATE_ID Successfully added to User");
-                        }
-                    });
-                }
-                else Log.d("Util", "Transaction aborted");
-            }
-        });
-
-    }
 
 }

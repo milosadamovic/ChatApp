@@ -2,7 +2,6 @@ package com.example.chatapp.findfriends;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,37 +12,34 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompatSideChannelService;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
-import com.example.chatapp.common.Constants;
-import com.example.chatapp.common.NodeNames;
-import com.example.chatapp.common.Util;
+import com.example.chatapp.util.Constants;
+import com.example.chatapp.util.NodeNames;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import org.w3c.dom.Node;
-
-import java.util.HashMap;
 import java.util.List;
 
 public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.FindFriendsViewHolder> {
 
     private Context context;
     private List<FindFriendsModel> findFriendsModelList;
-
-    private DatabaseReference drFriendRequests, drUsers;
-    private FirebaseUser currentUser;
     private String userId;
+
+    private DatabaseReference dbRefFriendRequests, dbRefUsers;
+    private FirebaseUser currentUser;
 
     public FindFriendsAdapter(Context context, List<FindFriendsModel> findFriendsModelList) {
         this.context = context;
@@ -61,28 +57,61 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
     @Override
     public void onBindViewHolder(@NonNull FindFriendsAdapter.FindFriendsViewHolder holder, int position) {
 
+
            FindFriendsModel friendsModel = findFriendsModelList.get(position);
-           holder.tvFullName.setText(friendsModel.getUserName());
+           //holder.tvFullName.setText(friendsModel.getUserName());
 
            StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://chatapp-ca8cb.appspot.com");
            StorageReference mountRef = storageRef.child(Constants.IMAGES_FOLDER + "/" + friendsModel.getPhotoName());
-           //StorageReference fileRef = FirebaseStorage.getInstance().getReference().child(Constants.IMAGES_FOLDER + "/" + friendsModel.getPhotoName());
 
 
-        mountRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+         /**CITANJE IMENA KORISNIKA*/
+           dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
+           String userID = friendsModel.getUserId();
+
+           dbRefUsers.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
                @Override
-               public void onSuccess(Uri uri) {
-                   Glide.with(context)
-                            .load(uri)
-                            .placeholder(R.drawable.default_profile)
-                            .error(R.drawable.default_profile)
-                            .into(holder.ivProfile);
+               public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                   String fullName = snapshot.child(NodeNames.NAME).getValue() != null ? snapshot.child(NodeNames.NAME).getValue().toString() : "";
+                   holder.tvFullName.setText(fullName);
+               }
+
+               @Override
+               public void onCancelled(@NonNull DatabaseError error) {
+                   Toast.makeText(context, context.getString(R.string.failed_to_fetch_friend_name, error.getMessage()), Toast.LENGTH_SHORT).show();
                }
            });
 
-           drFriendRequests = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS);
-           drUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
+            /**CITANJE PROFILNE SLIKE*/
+            mountRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+
+                    if(task.isSuccessful())
+                    {
+                        Uri uri = task.getResult();
+                        Glide.with(context)
+                                .load(uri)
+                                .placeholder(R.drawable.default_profile)
+                                .error(R.drawable.default_profile)
+                                .into(holder.ivProfile);
+                    }
+                    else
+                    {
+                        Glide.with(context)
+                                .load(R.drawable.default_profile)
+                                .placeholder(R.drawable.default_profile)
+                                .error(R.drawable.default_profile)
+                                .into(holder.ivProfile);
+                    }
+
+                }
+            });
+
            currentUser = FirebaseAuth.getInstance().getCurrentUser();
+           dbRefFriendRequests = FirebaseDatabase.getInstance().getReference().child(NodeNames.FRIEND_REQUESTS);
+
 
            if(friendsModel.isRequestSent())
            {
@@ -95,8 +124,6 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                holder.btnCancelRequest.setVisibility(View.GONE);
            }
 
-
-           /**PRE SLANJA ZAHTEVA TREBA PROVERITI DA LI JE KORISNIK KOJI SALJE ZAHTEV VEC PRIMIO ZAHTEV OD TOG KORISNIKA KOME SALJE ZAHTEV */
            holder.btnSendRequest.setOnClickListener(new View.OnClickListener() {
                @Override
                public void onClick(View view) {
@@ -106,14 +133,14 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                    userId = friendsModel.getUserId();
 
-                   drFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE)
+                   dbRefFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE)
                            .setValue(Constants.REQUEST_STATUS_SENT).addOnCompleteListener(new OnCompleteListener<Void>() {
                        @Override
                        public void onComplete(@NonNull Task<Void> task) {
 
                            if(task.isSuccessful())
                            {
-                               drFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE)
+                               dbRefFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE)
                                        .setValue(Constants.REQUEST_STATUS_RECEIVED).addOnCompleteListener(new OnCompleteListener<Void>() {
                                    @Override
                                    public void onComplete(@NonNull Task<Void> task) {
@@ -125,7 +152,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                                            String title = "New Friend Request";
                                            String message = "Friend request from " + currentUser.getDisplayName();
 
-                                           Util.sendNotification(context, title, message, userId, currentUser.getUid(),Constants.NOTIFICATION_TYPE_REQUEST);
+                                          // Util.sendNotification(context, title, message, userId, currentUser.getUid(),Constants.NOTIFICATION_TYPE_REQUEST);
 
                                            holder.btnSendRequest.setVisibility(View.GONE);
                                            holder.pbRequest.setVisibility(View.GONE);
@@ -157,7 +184,6 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                }
            });
 
-
            holder.btnCancelRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -167,14 +193,14 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                 userId = friendsModel.getUserId();
 
-                drFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE)
+                dbRefFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE)
                         .setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if(task.isSuccessful())
                         {
-                            drFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE)
+                            dbRefFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE)
                                     .setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
@@ -189,7 +215,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                                         String title = "New Canceled Request";
                                         String message = "Canceled request from " + currentUser.getDisplayName();
-                                        Util.sendNotification(context, title, message, userId, currentUser.getUid(),Constants.NOTIFICATION_TYPE_REQUEST_CANCELED);
+                                        //Util.sendNotification(context, title, message, userId, currentUser.getUid(),Constants.NOTIFICATION_TYPE_REQUEST_CANCELED);
                                     }
                                     else
                                     {
