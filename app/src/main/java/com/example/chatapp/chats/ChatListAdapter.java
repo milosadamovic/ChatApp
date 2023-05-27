@@ -93,11 +93,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             }
         });
 
-
-
-        Log.d("ChatFragment - ChatListAdapter", "userName: " + chatListModel.getUserName());
-        Log.d("ChatFragment - ChatListAdapter", "mountRef: " + mountRef);
-        Log.d("ChatFragment - ChatListAdapter","----------------------------------------------");
+        /**OBRADI GRESKU UCITAVANJA SLIKE*/
 
 
         /**LAST MESSAGE*/

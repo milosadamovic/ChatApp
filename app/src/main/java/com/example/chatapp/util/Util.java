@@ -66,12 +66,12 @@ public class Util {
         if(currentUser != null)
         {
             DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-            DatabaseReference databaseReference = rootRef.child(NodeNames.TOKEN).child(currentUser.getUid());
+            DatabaseReference dbRefToken = rootRef.child(NodeNames.TOKEN).child(currentUser.getUid());
 
             HashMap<String, String> hashMap = new HashMap<>();
             hashMap.put(NodeNames.DEVICE_TOKEN, token);
 
-            databaseReference.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+            dbRefToken.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
 
@@ -97,10 +97,10 @@ public class Util {
         Log.d("Util", "sendNotification() called ");
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference databaseReference = rootRef.child(NodeNames.TOKEN).child(chatUserId);
+        DatabaseReference dbRefToken = rootRef.child(NodeNames.TOKEN).child(chatUserId);
 
 
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        dbRefToken.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
@@ -207,7 +207,7 @@ public class Util {
                     chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount));
                 else chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount)+1);
 
-                Map chatUserMap = new HashMap();
+                /*Map chatUserMap = new HashMap();
                 chatUserMap.put(NodeNames.CHATS + "/" + chatUserId + "/" + currentUserId, chatMap);
 
                 rootRef.updateChildren(chatUserMap, new DatabaseReference.CompletionListener() {
@@ -216,6 +216,17 @@ public class Util {
 
                         if(error != null)
                             Toast.makeText(context, context.getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_SHORT).show();
+                    }
+                });*/
+
+
+                chatRef.updateChildren(chatMap).addOnCompleteListener(new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        if(!task.isSuccessful())
+                        {
+                            Toast.makeText(context, context.getString(R.string.something_went_wrong, task.getException()), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
 

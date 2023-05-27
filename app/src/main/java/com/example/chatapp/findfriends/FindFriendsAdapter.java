@@ -18,6 +18,7 @@ import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
 import com.example.chatapp.util.Constants;
 import com.example.chatapp.util.NodeNames;
+import com.example.chatapp.util.Util;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -59,7 +60,6 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
 
            FindFriendsModel friendsModel = findFriendsModelList.get(position);
-           //holder.tvFullName.setText(friendsModel.getUserName());
 
            StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://chatapp-ca8cb.appspot.com");
            StorageReference mountRef = storageRef.child(Constants.IMAGES_FOLDER + "/" + friendsModel.getPhotoName());
@@ -152,7 +152,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                                            String title = "New Friend Request";
                                            String message = "Friend request from " + currentUser.getDisplayName();
 
-                                          // Util.sendNotification(context, title, message, userId, currentUser.getUid(),Constants.NOTIFICATION_TYPE_REQUEST);
+                                           Util.sendNotification(context, title, message, userId, currentUser.getUid(),Constants.NOTIFICATION_TYPE_REQUEST);
 
                                            holder.btnSendRequest.setVisibility(View.GONE);
                                            holder.pbRequest.setVisibility(View.GONE);
@@ -211,11 +211,6 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                                         holder.btnSendRequest.setVisibility(View.VISIBLE);
                                         holder.pbRequest.setVisibility(View.GONE);
                                         holder.btnCancelRequest.setVisibility(View.GONE);
-
-
-                                        String title = "New Canceled Request";
-                                        String message = "Canceled request from " + currentUser.getDisplayName();
-                                        //Util.sendNotification(context, title, message, userId, currentUser.getUid(),Constants.NOTIFICATION_TYPE_REQUEST_CANCELED);
                                     }
                                     else
                                     {

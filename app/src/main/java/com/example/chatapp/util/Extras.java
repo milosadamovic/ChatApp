@@ -11,4 +11,6 @@ public class Extras {
     public static final String MESSAGE_TYPE = "message_type";
 
     public static final String CHAT_USER_ID = "chat_user_id";
+
+    public static final String SELECTED_TAB = "selected_tab";
 }

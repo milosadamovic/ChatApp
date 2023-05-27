@@ -137,8 +137,10 @@ public class RequestsFragment extends Fragment {
     public void onResume() {
         Log.d("RequestFragment", "onResume() called");
         Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REQUESTID);
+        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REPLYID);
         super.onResume();
     }
+
 
     @Override
     public void onPause() {

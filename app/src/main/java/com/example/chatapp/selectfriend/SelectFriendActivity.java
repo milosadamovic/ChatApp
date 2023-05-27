@@ -1,6 +1,7 @@
 package com.example.chatapp.selectfriend;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -8,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -16,6 +18,7 @@ import com.example.chatapp.util.Extras;
 import com.example.chatapp.util.NodeNames;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,13 +31,15 @@ import java.util.List;
 public class SelectFriendActivity extends AppCompatActivity {
 
     private RecyclerView rvSelectFriend;
-    private SelectFriendAdapter selectFriendAdapter;
-    private List<SelectFriendModel> selectFriendModels;
-    private View progressBar;
+    private View pB;
 
-    private DatabaseReference databaseReferenceUsers, databaseReferenceChats;
+    private SelectFriendAdapter adapter;
+    private List<SelectFriendModel> selectFriendModels;
+    private List<String>userIds;
+
+    private DatabaseReference dbRefUsers, dbRefChats;
     private FirebaseUser currentUser;
-    private ValueEventListener valueEventListener;
+    private ChildEventListener childEventListener;
 
     private String selectedMessage, selectedMessageId, selectedMessageType, chatUserId;
 
@@ -53,72 +58,131 @@ public class SelectFriendActivity extends AppCompatActivity {
         }
 
         rvSelectFriend = findViewById(R.id.rvSelectFriend);
-        progressBar = findViewById(R.id.progressBar);
+        pB = findViewById(R.id.progressBar);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         rvSelectFriend.setLayoutManager(linearLayoutManager);
 
         selectFriendModels = new ArrayList<>();
-        selectFriendAdapter = new SelectFriendAdapter(this, selectFriendModels);
-        rvSelectFriend.setAdapter(selectFriendAdapter);
+        userIds = new ArrayList<>();
+        adapter = new SelectFriendAdapter(this, selectFriendModels);
+        rvSelectFriend.setAdapter(adapter);
 
-        progressBar.setVisibility(View.VISIBLE);
+        pB.setVisibility(View.VISIBLE);
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        databaseReferenceChats = FirebaseDatabase.getInstance().getReference().child(NodeNames.CHATS).child(currentUser.getUid());
-        databaseReferenceUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
+        dbRefChats = FirebaseDatabase.getInstance().getReference().child(NodeNames.CHATS).child(currentUser.getUid());
+        dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
 
-        valueEventListener = new ValueEventListener() {
+        selectFriendModels.clear();
+        userIds.clear();
+
+        childEventListener = new ChildEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                selectFriendModels.clear();
-
-                for(DataSnapshot ds : snapshot.getChildren())
-                {
-                    String userId = ds.getKey();
-                    databaseReferenceUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                            String userName = snapshot.child(NodeNames.NAME).getValue() != null ? snapshot.child(NodeNames.NAME).getValue().toString() : "";
-
-                            if (!userId.equals(chatUserId))
-                            {
-                                SelectFriendModel friendModel = new SelectFriendModel(userId, userName, userId + ".jpg");
-                                selectFriendModels.add(friendModel);
-                                selectFriendAdapter.notifyDataSetChanged();
-                            }
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
 
-                            progressBar.setVisibility(View.GONE);
+                Log.d("SelectFriendActivity", "onChildAdded() called");
 
+                String userId = snapshot.getKey();
+
+                dbRefUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+
+                        String userName = snapshot.child(NodeNames.NAME).getValue() != null ? snapshot.child(NodeNames.NAME).getValue().toString() : "";
+
+                        if (!userId.equals(chatUserId)) {
+                            SelectFriendModel friendModel = new SelectFriendModel(userId, userName, userId + ".jpg");
+                            userIds.add(userId);
+                            selectFriendModels.add(friendModel);
+                            int indexOfUser = userIds.indexOf(userId);
+                            adapter.notifyItemInserted(indexOfUser);
                         }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
+                        pB.setVisibility(View.GONE);
 
-                            Toast.makeText(SelectFriendActivity.this, getString(R.string.failed_to_fetch_friends, error.getMessage()), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                        Toast.makeText(SelectFriendActivity.this, getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_LONG).show();
+
+                    }
+                });
+
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                Log.d("SelectFriendActivity", "onChildChanged() called");
+
+                String userId = snapshot.getKey();
+
+                dbRefUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+
+                        String userName = snapshot.child(NodeNames.NAME).getValue() != null ? snapshot.child(NodeNames.NAME).getValue().toString() : "";
+
+                        if (!userId.equals(chatUserId)) {
+                            SelectFriendModel friendModel = new SelectFriendModel(userId, userName, userId + ".jpg");
+                            int indexOfUser = userIds.indexOf(userId);
+                            selectFriendModels.set(indexOfUser,friendModel);
+                            adapter.notifyItemChanged(indexOfUser);
                         }
-                    });
-                }
+
+                        pB.setVisibility(View.GONE);
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(SelectFriendActivity.this, getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_LONG).show();
+                    }
+                });
+
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                Log.d("SelectFriendActivity", "onChildRemoved() called");
+
+                String userId = snapshot.getKey();
+                int indexOfUser = userIds.indexOf(userId);
+                userIds.remove(userId);
+                selectFriendModels.remove(indexOfUser);
+                adapter.notifyItemRemoved(indexOfUser);
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-                Toast.makeText(SelectFriendActivity.this, getString(R.string.failed_to_fetch_friends, error.getMessage()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SelectFriendActivity.this, getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_LONG).show();
+
             }
         };
 
-        databaseReferenceChats.addValueEventListener(valueEventListener);
+        dbRefChats.addChildEventListener(childEventListener);
     }
 
 
     public void returnSelectedFriend(String userId, String userName, String photoName)
     {
-        databaseReferenceChats.removeEventListener(valueEventListener);
+        dbRefChats.removeEventListener(childEventListener);
         Intent intent = new Intent();
 
         intent.putExtra(Extras.USER_KEY, userId);

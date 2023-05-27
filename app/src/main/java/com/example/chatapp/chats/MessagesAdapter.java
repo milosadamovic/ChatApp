@@ -166,11 +166,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             @Override
             public boolean onLongClick(View view) {
 
-                Log.d("MyActivity", "onLongClick()  HELLO");
-
                 if (actionModeInstance != null)
                 {
-                    Log.d("MyActivity", "onLongClick - actionMode: " + actionModeInstance);
                     holder.clMessage.setBackground(ContextCompat.getDrawable(context, R.drawable.default_message_background));
                     actionModeInstance.finish();
                     return false;
@@ -196,8 +193,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
    public void onViewRecycled(@NonNull MessageViewHolder holder) {
 
        super.onViewRecycled(holder);
-
-       //holder.clMessage.setBackground(ContextCompat.getDrawable(context, R.drawable.default_message_background));
 
     }
 
@@ -275,8 +270,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 itemDownload.setVisible(false);
                 itemForward.setVisible(false);
                 itemShare.setVisible(false);
-
-                Log.d("MessageAdapter", "onCreateActionMode called, selectedMessageType = " + selectedMessageType);
             }
 
             return true;
@@ -301,7 +294,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             switch (itemId)
             {
 
-                /**UBACITI PROVERU NA SVE OPCIJE DA LI SE RADI O PORUCI MESSAGETYPE == DELETED*/
                 case R.id.mnuDelete:
 
                     if(context instanceof ChatActivity)
@@ -356,9 +348,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
             actionMode = null;
             actionModeInstance = null;
-            Log.d("MyActivity", "onDestroyActionMode - actionMode: " + actionMode);
-            Log.d("MyActivity", "onDestroyActionMode - actionMode: " + actionModeInstance);
-
             selectedView.setBackground(ContextCompat.getDrawable(context, R.drawable.default_message_background));
             indexOfSelectedMessage = -1;
 

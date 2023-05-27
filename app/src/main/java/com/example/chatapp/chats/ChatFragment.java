@@ -102,18 +102,22 @@ public class ChatFragment extends Fragment{
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
                     updateList(snapshot, 0, snapshot.getKey());
+                    Log.d("ChatFragment", "onChildAdded() called");
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
                     updateList(snapshot, 1, snapshot.getKey());
+                    Log.d("ChatFragment", "onChildChanged() called");
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
                    updateList(snapshot, 2, snapshot.getKey());
+                    Log.d("ChatFragment", "onChildRemoved() called");
+
             }
 
             @Override
@@ -205,6 +209,7 @@ public class ChatFragment extends Fragment{
         super.onResume();
         Log.d("ChatFragment", "onResume() called");
         Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_MESSAGEID);
+        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REQUESTID);
     }
 
 

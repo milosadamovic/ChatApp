@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.example.chatapp.main.MainActivity;
 import com.example.chatapp.NetworkError;
 import com.example.chatapp.R;
+import com.example.chatapp.util.Extras;
 import com.example.chatapp.util.Util;
 import com.example.chatapp.password.ResetPasswordActivity;
 import com.example.chatapp.signup.SignupActivity;
@@ -31,6 +32,8 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseUser currentUser;
     private FirebaseAuth firebaseAuth;
 
+    private String selectedTab="";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -44,6 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         pB = findViewById(R.id.progressBar);
+
 
     }
 
@@ -117,10 +121,10 @@ public class LoginActivity extends AppCompatActivity {
             /**NAKON PRIJAVLJIVANJA NOVIH KORISNIKA OVDE IM SE GENERISE TOKEN, STARI KORISNISCIMA OSTAJE PRETHODNI UKOLIKO SE NISU ODJAVILI*/
             UtilLogin.getToken(this);
 
-
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
             finish();
-
         }
 
     }

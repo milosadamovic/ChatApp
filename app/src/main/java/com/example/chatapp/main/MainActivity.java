@@ -14,6 +14,7 @@ import android.view.MenuItem;
 
 import com.example.chatapp.R;
 import com.example.chatapp.profile.ProfileActivity;
+import com.example.chatapp.util.Extras;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -40,54 +41,20 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
-
         /**PROBLEM KOD LINIJE ISPOD KOD LOGOUTA*/
        // DatabaseReference dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS).child(firebaseAuth.getCurrentUser().getUid());
         //dbRefUsers.child(NodeNames.ONLINE).setValue(true);
         /**POZIVA SE KADA KORISNIK ZATVORI APLIKACIJU ILI SE ODJAVI - KASNIJE SE POZIVA AKO DODJE DO NASILNOG PREKIDA MREZE*/
         //dbRefUsers.child(NodeNames.ONLINE).onDisconnect().setValue(false);
 
-        UtilMain.setViewPager(tabLayout, viewPager, fragmentManager, lifecycle);
+        setViewPager();
 
     }
 
 
-    /**********ADAPTER****************/
-    /*class Adapter extends FragmentStateAdapter {
 
-        final int tabCount = 3;
 
-        public Adapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
-            super(fragmentManager, lifecycle);
-        }
-
-        @NonNull
-        @Override
-        public Fragment createFragment(int position) {
-
-            switch (position)
-            {
-                case 0:
-                    ChatFragment chatFragment = new ChatFragment();
-                    return chatFragment;
-                case 1:
-                    RequestsFragment requestsFragment = new RequestsFragment();
-                    return requestsFragment;
-                case 2:
-                    FindFriendsFragment findFriendsFragment = new FindFriendsFragment();
-                    return findFriendsFragment;
-            }
-
-            return null;
-        }
-
-        @Override
-        public int getItemCount() {
-            return tabCount;
-        }
-    }*/
-   /*************UTILMAIN*************/
-   /* private void setViewPager()
+    private void setViewPager()
     {
         tabLayout.addTab(tabLayout.newTab().setCustomView(R.layout.tab_chat));
         tabLayout.addTab(tabLayout.newTab().setCustomView(R.layout.tab_requests));
@@ -132,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-    }*/
+    }
 
 
 
