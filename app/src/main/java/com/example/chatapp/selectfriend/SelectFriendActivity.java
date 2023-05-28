@@ -13,9 +13,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.chatapp.NetworkError;
 import com.example.chatapp.R;
 import com.example.chatapp.util.Extras;
 import com.example.chatapp.util.NodeNames;
+import com.example.chatapp.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -81,9 +83,6 @@ public class SelectFriendActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-
-                Log.d("SelectFriendActivity", "onChildAdded() called");
-
                 String userId = snapshot.getKey();
 
                 dbRefUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -119,8 +118,6 @@ public class SelectFriendActivity extends AppCompatActivity {
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                Log.d("SelectFriendActivity", "onChildChanged() called");
-
                 String userId = snapshot.getKey();
 
                 dbRefUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -152,8 +149,6 @@ public class SelectFriendActivity extends AppCompatActivity {
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-                Log.d("SelectFriendActivity", "onChildRemoved() called");
 
                 String userId = snapshot.getKey();
                 int indexOfUser = userIds.indexOf(userId);
@@ -197,4 +192,15 @@ public class SelectFriendActivity extends AppCompatActivity {
         finish();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(!Util.connectionAvailable(this)) startActivity(new Intent(this, NetworkError.class));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("SelectFriendActivity", "onDestroy() called");
+    }
 }

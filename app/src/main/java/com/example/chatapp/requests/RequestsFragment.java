@@ -1,5 +1,6 @@
 package com.example.chatapp.requests;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.chatapp.NetworkError;
 import com.example.chatapp.R;
 import com.example.chatapp.util.Constants;
 import com.example.chatapp.util.NodeNames;
@@ -56,6 +58,7 @@ public class RequestsFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         Log.d("RequestFragment", "onCreateView() called");
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_requests, container, false);
 
@@ -118,6 +121,7 @@ public class RequestsFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {
 
                 Toast.makeText(getActivity(), getActivity().getString(R.string.failed_to_fetch_friend_requests, error.getMessage()),Toast.LENGTH_SHORT).show();
+                Log.d("RequestFragment", "onCancelled() called, error: " + error.getMessage());
                 pB.setVisibility(View.GONE);
             }
         };
@@ -135,10 +139,18 @@ public class RequestsFragment extends Fragment {
 
     @Override
     public void onResume() {
-        Log.d("RequestFragment", "onResume() called");
-        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REQUESTID);
-        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REPLYID);
+
         super.onResume();
+
+        if(Util.connectionAvailable(requireContext()))
+        {
+            Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REQUESTID);
+            Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REPLYID);
+        }
+        else startActivity(new Intent(requireContext(),NetworkError.class));
+
+
+        Log.d("RequestFragment", "onResume() called");
     }
 
 
@@ -193,6 +205,7 @@ public class RequestsFragment extends Fragment {
                             public void onCancelled(@NonNull DatabaseError error) {
 
                                 Toast.makeText(getContext(), getString(R.string.failed_to_fetch_friend_requests, error.getMessage()), Toast.LENGTH_SHORT).show();
+                                Log.d("RequestFragment", "onCancelled() called, error: " + error.getMessage());
                                 pB.setVisibility(View.GONE);
                             }
                         });
@@ -227,6 +240,7 @@ public class RequestsFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {
 
                 Toast.makeText(getContext(), getString(R.string.failed_to_fetch_friend_requests, error.getMessage()), Toast.LENGTH_SHORT).show();
+                Log.d("RequestFragment", "onCancelled() called, error: " + error.getMessage());
                 pB.setVisibility(View.GONE);
 
             }

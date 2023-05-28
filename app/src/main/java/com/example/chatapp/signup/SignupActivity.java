@@ -21,9 +21,11 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.chatapp.NetworkError;
 import com.example.chatapp.R;
 import com.example.chatapp.util.NodeNames;
 import com.example.chatapp.login.LoginActivity;
+import com.example.chatapp.util.Util;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -158,13 +160,13 @@ public class SignupActivity extends AppCompatActivity {
                                         HashMap<String,String> hashMap = new HashMap<>();
                                         hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                                         hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
-                                        hashMap.put(NodeNames.ONLINE, "true");
                                         hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
 
                                         dbRefUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
+                                                /**INTENT - OVDE*/
                                                 startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                                             }
                                         });
@@ -201,12 +203,10 @@ public class SignupActivity extends AppCompatActivity {
                 if(task.isSuccessful())
                 {
                     String userID = currentUser.getUid();
-                    //dbRefUsers = FirebaseDatabase.getInstance().getReference().child("Users");
 
                     HashMap<String,String> hashMap = new HashMap<>();
                     hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                     hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
-                    hashMap.put(NodeNames.ONLINE, "true");
                     hashMap.put(NodeNames.PHOTO, "");
 
                     pB.setVisibility(View.VISIBLE);
@@ -220,6 +220,7 @@ public class SignupActivity extends AppCompatActivity {
                             if(task.isSuccessful())
                             {
                                 Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
+                                /**INTENT - OVDE*/
                                 startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                             }
                         }
@@ -259,31 +260,37 @@ public class SignupActivity extends AppCompatActivity {
             etConfirmPassword.setError(getString(R.string.password_mismatch));
         }else {
 
-            pB.setVisibility(View.VISIBLE);
+            if(Util.connectionAvailable(this))
+            {
+                pB.setVisibility(View.VISIBLE);
 
-            firebaseAuth = FirebaseAuth.getInstance();
+                firebaseAuth = FirebaseAuth.getInstance();
 
-            firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
+                firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
 
-                    pB.setVisibility(View.GONE);
+                        pB.setVisibility(View.GONE);
 
-                    if(task.isSuccessful())
-                    {
-                        currentUser = firebaseAuth.getCurrentUser();
-                        if (localFileUri != null)
-                            updateNameAndPhoto();
+                        if(task.isSuccessful())
+                        {
+                            currentUser = firebaseAuth.getCurrentUser();
+                            if (localFileUri != null)
+                                updateNameAndPhoto();
+                            else
+                                updateOnlyName();
+                        }
                         else
-                            updateOnlyName();
+                        {
+                            Toast.makeText(SignupActivity.this, getString(R.string.signup_failed, task.getException()), Toast.LENGTH_LONG).show();
+                            Log.d("SignupFailed2: ","Signup failed: " + task.getException());
+                        }
                     }
-                    else
-                    {
-                        Toast.makeText(SignupActivity.this, getString(R.string.signup_failed, task.getException()), Toast.LENGTH_LONG).show();
-                        Log.d("SignupFailed2: ","Signup failed: " + task.getException());
-                    }
-                }
-            });
+                });
+            }
+              else Toast.makeText(this, R.string.no_internet ,Toast.LENGTH_LONG).show();
+
+
         }
     }
 

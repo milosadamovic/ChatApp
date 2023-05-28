@@ -44,6 +44,11 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
          return new ChatListViewHolder(view);
     }
 
+    public void onItemSwiped(int position) {
+
+    }
+
+
     @Override
     public void onBindViewHolder(@NonNull ChatListAdapter.ChatListViewHolder holder, int position) {
 
@@ -51,21 +56,9 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         ChatListModel chatListModel = chatListModelList.get(position);
         holder.tvFullName.setText(chatListModel.getUserName());
 
-        //StorageReference fileRef = FirebaseStorage.getInstance().getReference().child(Constants.IMAGES_FOLDER + "/" + chatListModel.getPhotoName());
         StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://chatapp-ca8cb.appspot.com");
         StorageReference mountRef = storageRef.child(Constants.IMAGES_FOLDER + "/" + chatListModel.getPhotoName());
 
-
-       /* mountRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                Glide.with(context)
-                        .load(uri)
-                        .placeholder(R.drawable.default_profile)
-                        .error(R.drawable.default_profile)
-                        .into(holder.ivProfile);
-            }
-        });*/
 
         mountRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
             @Override
@@ -121,6 +114,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             @Override
             public void onClick(View view) {
 
+                /**INTENT - OVDE*/
                 Intent intent = new Intent(context, ChatActivity.class);
                 intent.putExtra(Extras.USER_KEY, chatListModel.getUserId());
                 intent.putExtra(Extras.USER_NAME, chatListModel.getUserName());
@@ -135,6 +129,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     public int getItemCount() {
         return chatListModelList.size();
     }
+
 
     public class ChatListViewHolder extends RecyclerView.ViewHolder{
 

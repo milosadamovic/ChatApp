@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
 import com.example.chatapp.util.Constants;
+import com.example.chatapp.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.SimpleDateFormat;
@@ -283,64 +285,71 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         @Override
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
 
-            String selectedMessageId = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE_ID));
-            String selectedMessage = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE));
-            String selectedMessageType = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE_TYPE));
 
-
-
-            int itemId = menuItem.getItemId();
-
-            switch (itemId)
+            if(Util.connectionAvailable(context))
             {
+                String selectedMessageId = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE_ID));
+                String selectedMessage = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE));
+                String selectedMessageType = String.valueOf(selectedView.getTag(R.id.TAG_MESSAGE_TYPE));
 
-                case R.id.mnuDelete:
 
-                    if(context instanceof ChatActivity)
-                    {
-                        if(selectedMessageType.equals(Constants.MESSAGE_TYPE_DELETED))
-                            ((ChatActivity)context).clearMessage(selectedMessageId, selectedMessageType);
-                        else ((ChatActivity)context).deleteMessage(selectedMessageId, selectedMessageType, indexOfSelectedMessage);
-                    }
-                    actionMode.finish();
-                    break;
 
-                case R.id.mnuDownload:
+                int itemId = menuItem.getItemId();
 
-                    if(context instanceof ChatActivity)
-                        ((ChatActivity)context).downloadFile(selectedMessageId, selectedMessageType, false);
+                switch (itemId)
+                {
 
-                    actionMode.finish();
-                    break;
+                    case R.id.mnuDelete:
 
-                case R.id.mnuShare:
-
-                    if(selectedMessageType.equals(Constants.MESSAGE_TYPE_TEXT))
-                    {
-                        Intent intentShare = new Intent();
-                        intentShare.setAction(Intent.ACTION_SEND);
-                        intentShare.putExtra(Intent.EXTRA_TEXT, selectedMessage);
-                        intentShare.setType("text/plain");
-                        context.startActivity(intentShare);
-                    }
-                    else
-                    {
                         if(context instanceof ChatActivity)
-                            ((ChatActivity)context).downloadFile(selectedMessageId, selectedMessageType, true);
-                    }
+                        {
+                            if(selectedMessageType.equals(Constants.MESSAGE_TYPE_DELETED))
+                                ((ChatActivity)context).clearMessage(selectedMessageId, selectedMessageType);
+                            else ((ChatActivity)context).deleteMessage(selectedMessageId, selectedMessageType, indexOfSelectedMessage);
+                        }
+                        actionMode.finish();
+                        break;
 
-                    actionMode.finish();
-                    break;
+                    case R.id.mnuDownload:
 
-                case R.id.mnuForward:
+                        if(context instanceof ChatActivity)
+                            ((ChatActivity)context).downloadFile(selectedMessageId, selectedMessageType, false);
 
-                    if(context instanceof ChatActivity)
-                        ((ChatActivity)context).forwardMessage(selectedMessageId, selectedMessage, selectedMessageType, ((ChatActivity) context).openChatUserId);
-                    actionMode.finish();
-                    break;
-            }
+                        actionMode.finish();
+                        break;
+
+                    case R.id.mnuShare:
+
+                        if(selectedMessageType.equals(Constants.MESSAGE_TYPE_TEXT))
+                        {
+                            Intent intentShare = new Intent();
+                            intentShare.setAction(Intent.ACTION_SEND);
+                            intentShare.putExtra(Intent.EXTRA_TEXT, selectedMessage);
+                            intentShare.setType("text/plain");
+                            context.startActivity(intentShare);
+                        }
+                        else
+                        {
+                            if(context instanceof ChatActivity)
+                                ((ChatActivity)context).downloadFile(selectedMessageId, selectedMessageType, true);
+                        }
+
+                        actionMode.finish();
+                        break;
+
+                    case R.id.mnuForward:
+
+                        if(context instanceof ChatActivity)
+                            ((ChatActivity)context).forwardMessage(selectedMessageId, selectedMessage, selectedMessageType, ((ChatActivity) context).openChatUserId);
+                        actionMode.finish();
+                        break;
+                }
+
+
+            } else Toast.makeText(context, R.string.no_internet ,Toast.LENGTH_LONG).show();
 
             return false;
+
         }
 
         @Override

@@ -90,62 +90,70 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
             @Override
             public void onClick(View view) {
 
-                holder.pbDecision.setVisibility(View.VISIBLE);
-                holder.btnDenyRequest.setVisibility(View.GONE);
-                holder.btnAcceptRequest.setVisibility(View.GONE);
 
-                final String userId = requestModel.getUserId();
+                if(Util.connectionAvailable(context))
+                {
+                    holder.pbDecision.setVisibility(View.VISIBLE);
+                    holder.btnDenyRequest.setVisibility(View.GONE);
+                    holder.btnAcceptRequest.setVisibility(View.GONE);
 
-                dbRefChats.child(currentUser.getUid()).child(userId).child(NodeNames.TIME_STAMP).setValue(ServerValue.TIMESTAMP).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
+                    final String userId = requestModel.getUserId();
 
-                        if(task.isSuccessful())
-                        {
-                            dbRefChats.child(userId).child(currentUser.getUid()).child(NodeNames.TIME_STAMP).setValue(ServerValue.TIMESTAMP).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
+                    dbRefChats.child(currentUser.getUid()).child(userId).child(NodeNames.TIME_STAMP).setValue(ServerValue.TIMESTAMP).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
 
-                                    if(task.isSuccessful())
-                                    {
-                                        dbRefFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE).setValue(Constants.REQUEST_STATUS_ACCEPTED).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful())
+                            {
+                                dbRefChats.child(userId).child(currentUser.getUid()).child(NodeNames.TIME_STAMP).setValue(ServerValue.TIMESTAMP).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
 
-                                                if(task.isSuccessful())
-                                                {
-                                                    dbRefFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE).setValue(Constants.REQUEST_STATUS_ACCEPTED).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                        @Override
-                                                        public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isSuccessful())
+                                        {
+                                            dbRefFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE).setValue(Constants.REQUEST_STATUS_ACCEPTED).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
 
-                                                            if(task.isSuccessful())
-                                                            {
-                                                                String title = "Friend Request Accepted";
-                                                                String message = "Friend request accepted by " + currentUser.getDisplayName();
+                                                    if(task.isSuccessful())
+                                                    {
+                                                        dbRefFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE).setValue(Constants.REQUEST_STATUS_ACCEPTED).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
 
-                                                                Util.sendNotification(context, title, message, userId,currentUser.getUid(),Constants.NOTIFICATION_TYPE_REPLY);
+                                                                if(task.isSuccessful())
+                                                                {
+                                                                    String title = "Friend Request Accepted";
+                                                                    String message = "Friend request accepted by " + currentUser.getDisplayName();
 
-                                                                holder.pbDecision.setVisibility(View.GONE);
-                                                                holder.btnDenyRequest.setVisibility(View.VISIBLE);
-                                                                holder.btnAcceptRequest.setVisibility(View.VISIBLE);
+                                                                    Util.cancelNotifications(context, Constants.NOTIFICATION_TYPE_REQUESTID);
+                                                                    Util.sendNotification(context, title, message, userId,currentUser.getUid(),Constants.NOTIFICATION_TYPE_REPLY);
+
+                                                                    holder.pbDecision.setVisibility(View.GONE);
+                                                                    holder.btnDenyRequest.setVisibility(View.VISIBLE);
+                                                                    holder.btnAcceptRequest.setVisibility(View.VISIBLE);
+                                                                }
+                                                                else handleException(holder, task.getException());
+
                                                             }
-                                                            else handleException(holder, task.getException());
+                                                        });
+                                                    }
+                                                    else handleException(holder, task.getException());
 
-                                                        }
-                                                    });
                                                 }
-                                                else handleException(holder, task.getException());
-
-                                            }
-                                        });
+                                            });
+                                        }
+                                        else handleException(holder, task.getException());
                                     }
-                                    else handleException(holder, task.getException());
-                                }
-                            });
+                                });
+                            }
+                            else handleException(holder, task.getException());
                         }
-                        else handleException(holder, task.getException());
-                    }
-                });
+                    });
+                }
+                else Toast.makeText(context, R.string.no_internet ,Toast.LENGTH_LONG).show();
+
+
 
 
 
@@ -156,50 +164,56 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
             @Override
             public void onClick(View view) {
 
-                holder.pbDecision.setVisibility(View.VISIBLE);
-                holder.btnDenyRequest.setVisibility(View.GONE);
-                holder.btnAcceptRequest.setVisibility(View.GONE);
+                if(Util.connectionAvailable(context))
+                {
+                    holder.pbDecision.setVisibility(View.VISIBLE);
+                    holder.btnDenyRequest.setVisibility(View.GONE);
+                    holder.btnAcceptRequest.setVisibility(View.GONE);
 
-                final String userId = requestModel.getUserId();
+                    final String userId = requestModel.getUserId();
 
 
-                dbRefFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE).setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
+                    dbRefFriendRequests.child(currentUser.getUid()).child(userId).child(NodeNames.REQUEST_TYPE).setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
 
-                        if(task.isSuccessful())
-                        {
-                            dbRefFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE).setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful())
+                            {
+                                dbRefFriendRequests.child(userId).child(currentUser.getUid()).child(NodeNames.REQUEST_TYPE).setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
 
-                                    if(task.isSuccessful())
-                                    {
-                                        holder.pbDecision.setVisibility(View.GONE);
-                                        holder.btnDenyRequest.setVisibility(View.VISIBLE);
-                                        holder.btnAcceptRequest.setVisibility(View.VISIBLE);
-                                        Toast.makeText(context,R.string.request_denied_successfully,Toast.LENGTH_SHORT).show();
+                                        if(task.isSuccessful())
+                                        {
+                                            holder.pbDecision.setVisibility(View.GONE);
+                                            holder.btnDenyRequest.setVisibility(View.VISIBLE);
+                                            holder.btnAcceptRequest.setVisibility(View.VISIBLE);
+                                            Util.cancelNotifications(context, Constants.NOTIFICATION_TYPE_REQUESTID);
+                                            Toast.makeText(context,R.string.request_denied_successfully,Toast.LENGTH_SHORT).show();
+                                        }
+                                        else
+                                        {
+                                            Toast.makeText(context, context.getString(R.string.failed_to_deny_request, task.getException()), Toast.LENGTH_SHORT).show();
+                                            holder.pbDecision.setVisibility(View.GONE);
+                                            holder.btnDenyRequest.setVisibility(View.VISIBLE);
+                                            holder.btnAcceptRequest.setVisibility(View.VISIBLE);
+                                        }
                                     }
-                                    else
-                                    {
-                                        Toast.makeText(context, context.getString(R.string.failed_to_deny_request, task.getException()), Toast.LENGTH_SHORT).show();
-                                        holder.pbDecision.setVisibility(View.GONE);
-                                        holder.btnDenyRequest.setVisibility(View.VISIBLE);
-                                        holder.btnAcceptRequest.setVisibility(View.VISIBLE);
-                                    }
-                                }
-                            });
-                        }
-                        else
-                        {
-                            Toast.makeText(context, context.getString(R.string.failed_to_deny_request, task.getException()), Toast.LENGTH_SHORT).show();
-                            holder.pbDecision.setVisibility(View.GONE);
-                            holder.btnDenyRequest.setVisibility(View.VISIBLE);
-                            holder.btnAcceptRequest.setVisibility(View.VISIBLE);
-                        }
+                                });
+                            }
+                            else
+                            {
+                                Toast.makeText(context, context.getString(R.string.failed_to_deny_request, task.getException()), Toast.LENGTH_SHORT).show();
+                                holder.pbDecision.setVisibility(View.GONE);
+                                holder.btnDenyRequest.setVisibility(View.VISIBLE);
+                                holder.btnAcceptRequest.setVisibility(View.VISIBLE);
+                            }
 
-                    }
-                });
+                        }
+                    });
+                }
+                else Toast.makeText(context, R.string.no_internet ,Toast.LENGTH_LONG).show();
+
             }
         });
 

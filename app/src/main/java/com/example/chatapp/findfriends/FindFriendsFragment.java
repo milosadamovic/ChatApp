@@ -1,5 +1,6 @@
 package com.example.chatapp.findfriends;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.chatapp.NetworkError;
 import com.example.chatapp.R;
 import com.example.chatapp.util.Constants;
 import com.example.chatapp.util.NodeNames;
@@ -43,7 +45,7 @@ public class FindFriendsFragment extends Fragment {
     private  List<String> userIds;
     private  List<FindFriendsModel> findFriendsModelList;
     private  FirebaseUser currentUser;
-    private  ChildEventListener childEventListener, childEventListener2;
+    private ChildEventListener childEventListener, childEventListener2;
     private static int flag;
 
     public FindFriendsFragment() {
@@ -54,6 +56,7 @@ public class FindFriendsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_find_friends, container, false);
     }
@@ -150,6 +153,7 @@ public class FindFriendsFragment extends Fragment {
 
                 pB.setVisibility(View.GONE);
                 Toast.makeText(getContext(), getContext().getString(R.string.failed_to_fetch_friends, error.getMessage()), Toast.LENGTH_SHORT).show();
+                Log.d("FindFriendsFragment", "onCancelled() called, error: " + error.getMessage());
 
             }
         };
@@ -168,9 +172,17 @@ public class FindFriendsFragment extends Fragment {
 
     @Override
     public void onResume() {
-        Log.d("FindFriendsFragment", "onResume() called");
-        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REQUESTID);
+
         super.onResume();
+
+        if(Util.connectionAvailable(requireContext()))
+        {
+            Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REPLYID);
+        }
+        else startActivity(new Intent(requireContext(), NetworkError.class));
+
+
+        Log.d("FindFriendsFragment", "onResume() called");
     }
 
     @Override
@@ -306,6 +318,7 @@ public class FindFriendsFragment extends Fragment {
                                     public void onCancelled(@NonNull DatabaseError error) {
 
                                         Toast.makeText(getContext(), getString(R.string.failed_to_fetch_friends, error.getMessage()), Toast.LENGTH_SHORT).show();
+                                        Log.d("FindFriendsFragment", "onCancelled() called, error: " + error.getMessage());
                                     }
                                 });
                             }

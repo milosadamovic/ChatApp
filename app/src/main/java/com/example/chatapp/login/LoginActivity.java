@@ -23,6 +23,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -32,7 +33,6 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseUser currentUser;
     private FirebaseAuth firebaseAuth;
 
-    private String selectedTab="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        /**INICIJALIZACIJA FIREBASE-A*/
+        /**INIT FIREBASE */
         FirebaseApp.initializeApp(this);
 
 
@@ -78,8 +78,22 @@ public class LoginActivity extends AppCompatActivity {
 
                         pB.setVisibility(View.GONE);
                         if (task.isSuccessful()) {
-                            UtilLogin.getToken(getBaseContext());
-                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            FirebaseMessaging.getInstance().getToken()
+                                    .addOnCompleteListener(new OnCompleteListener<String>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<String> task) {
+                                            if (!task.isSuccessful()) {
+                                                Toast.makeText(LoginActivity.this, getString(R.string.failed_to_get_token, task.getException()), Toast.LENGTH_SHORT).show();
+                                            }
+                                            String token = task.getResult();
+                                            Util.updateDeviceToken(LoginActivity.this, token);
+                                        }
+                                    });
+
+                            /**INTENT - OVDE*/
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
                             finish();
                         } else {
                             Toast.makeText(getBaseContext(), "Login Failed: " + task.getException(), Toast.LENGTH_SHORT).show();
@@ -89,6 +103,7 @@ public class LoginActivity extends AppCompatActivity {
             }
             else
             {
+                /**INTENT - OVDE*/
                 startActivity(new Intent(LoginActivity.this, NetworkError.class));
             }
         }
@@ -96,12 +111,14 @@ public class LoginActivity extends AppCompatActivity {
 
     public void tvSignupClick(View view)
     {
+        /**INTENT - OVDE*/
         startActivity(new Intent(this, SignupActivity.class));
     }
 
 
     public void tvResetPasswordClick(View view)
     {
+        /**INTENT - OVDE*/
         startActivity(new Intent(LoginActivity.this, ResetPasswordActivity.class));
     }
 
@@ -119,8 +136,20 @@ public class LoginActivity extends AppCompatActivity {
         if(currentUser != null)
         {
             /**NAKON PRIJAVLJIVANJA NOVIH KORISNIKA OVDE IM SE GENERISE TOKEN, STARI KORISNISCIMA OSTAJE PRETHODNI UKOLIKO SE NISU ODJAVILI*/
-            UtilLogin.getToken(this);
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull Task<String> task) {
+                            if (!task.isSuccessful()) {
+                                Toast.makeText(LoginActivity.this, getString(R.string.failed_to_get_token, task.getException()), Toast.LENGTH_SHORT).show();
+                            }
 
+                            String token = task.getResult();
+                            Util.updateDeviceToken(LoginActivity.this, token);
+                        }
+                    });
+
+            /**INTENT - OVDE*/
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);

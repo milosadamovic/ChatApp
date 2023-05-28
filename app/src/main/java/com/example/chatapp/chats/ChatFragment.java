@@ -1,6 +1,7 @@
 package com.example.chatapp.chats;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,7 +18,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.chatapp.NetworkError;
 import com.example.chatapp.R;
+import com.example.chatapp.main.MainActivity;
 import com.example.chatapp.util.Constants;
 import com.example.chatapp.util.NodeNames;
 import com.example.chatapp.util.Util;
@@ -32,6 +35,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class ChatFragment extends Fragment{
@@ -64,6 +68,7 @@ public class ChatFragment extends Fragment{
         View rootView  = inflater.inflate(R.layout.fragment_chat, container, false);
         rootView.setId(R.id.chat_fragment);
 
+
         return rootView;
     }
 
@@ -75,6 +80,8 @@ public class ChatFragment extends Fragment{
         Log.d("ChatFragment", "onViewCreated() called");
 
         super.onViewCreated(view, savedInstanceState);
+
+
 
         rvChatList = view.findViewById(R.id.rvChats);
         tvEmptyChatList = view.findViewById(R.id.tvEmptyChatList);
@@ -207,9 +214,19 @@ public class ChatFragment extends Fragment{
     @Override
     public void onResume() {
         super.onResume();
+
+        if(Util.connectionAvailable(requireContext()))
+        {
+            Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_MESSAGEID);
+            Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REPLYID);
+        }
+        else
+        {
+            startActivity(new Intent(requireContext(), NetworkError.class));
+        }
+
         Log.d("ChatFragment", "onResume() called");
-        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_MESSAGEID);
-        Util.cancelNotifications(getContext(), Constants.NOTIFICATION_TYPE_REQUESTID);
+
     }
 
 

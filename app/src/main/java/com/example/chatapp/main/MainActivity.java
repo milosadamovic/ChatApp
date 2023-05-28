@@ -8,15 +8,22 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.chatapp.NetworkError;
 import com.example.chatapp.R;
+import com.example.chatapp.login.LoginActivity;
 import com.example.chatapp.profile.ProfileActivity;
 import com.example.chatapp.util.Extras;
+import com.example.chatapp.util.NodeNames;
+import com.example.chatapp.util.Util;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
 
+    DatabaseReference dbRefTokens;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,23 +44,20 @@ public class MainActivity extends AppCompatActivity {
 
         tabLayout = findViewById(R.id.tabMain);
         viewPager = findViewById(R.id.vpMain);
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        Lifecycle lifecycle = this.getLifecycle();
+
 
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
-        /**PROBLEM KOD LINIJE ISPOD KOD LOGOUTA*/
-       // DatabaseReference dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS).child(firebaseAuth.getCurrentUser().getUid());
-        //dbRefUsers.child(NodeNames.ONLINE).setValue(true);
+        dbRefTokens = FirebaseDatabase.getInstance().getReference().child(NodeNames.TOKEN).child(firebaseAuth.getCurrentUser().getUid());
+        dbRefTokens.child(NodeNames.ONLINE).setValue(true);
+
+
         /**POZIVA SE KADA KORISNIK ZATVORI APLIKACIJU ILI SE ODJAVI - KASNIJE SE POZIVA AKO DODJE DO NASILNOG PREKIDA MREZE*/
-        //dbRefUsers.child(NodeNames.ONLINE).onDisconnect().setValue(false);
+        dbRefTokens.child(NodeNames.ONLINE).onDisconnect().setValue(false);
 
         setViewPager();
 
     }
-
-
-
 
     private void setViewPager()
     {
@@ -115,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
         int id = item.getItemId();
 
+        /**INTENT - OVDE*/
         if(id == R.id.mnuProfile)
             startActivity(new Intent(MainActivity.this, ProfileActivity.class));
 
@@ -149,5 +155,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d("MainActivity", "onDestroy() called");
         super.onDestroy();
+
+        //dbRefTokens.child(NodeNames.ONLINE).setValue(false);
+
     }
 }

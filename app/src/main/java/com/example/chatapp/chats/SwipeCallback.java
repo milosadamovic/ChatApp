@@ -42,7 +42,12 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
 
     @Override
     public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        int swipeFlags =  ItemTouchHelper.END;
+
+        int swipeFlags = 0;
+
+        if(Util.connectionAvailable(recyclerView.getContext()))
+            swipeFlags =  ItemTouchHelper.END;
+
         return makeMovementFlags(0, swipeFlags);
     }
 
@@ -68,49 +73,55 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
 
         builder.setPositiveButton("Yes", (DialogInterface.OnClickListener) (dialog, which) -> {
 
+            if(Util.connectionAvailable(builder.getContext()))
+            {
+                rootRef.child(NodeNames.CHATS).child(currentUser.getUid()).child(chatUserId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
 
-            rootRef.child(NodeNames.CHATS).child(currentUser.getUid()).child(chatUserId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful())
+                        {
+                            rootRef.child(NodeNames.CHATS).child(chatUserId).child(currentUser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
 
-                    if(task.isSuccessful())
-                    {
-                        rootRef.child(NodeNames.CHATS).child(chatUserId).child(currentUser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-
-                                if(task.isSuccessful())
-                                {
-                                    rootRef.child(NodeNames.FRIEND_REQUESTS).child(chatUserId).child(currentUser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
+                                    if(task.isSuccessful())
+                                    {
+                                        rootRef.child(NodeNames.FRIEND_REQUESTS).child(chatUserId).child(currentUser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
 
 
-                                            if(task.isSuccessful())
-                                            {
-                                                rootRef.child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid()).child(chatUserId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                if(task.isSuccessful())
+                                                {
+                                                    rootRef.child(NodeNames.FRIEND_REQUESTS).child(currentUser.getUid()).child(chatUserId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
 
-                                                          if(!task.isSuccessful())
+                                                            if(!task.isSuccessful())
                                                             {
                                                                 handleException(viewHolder,task.getException());
                                                             }
-                                                    }
-                                                });
-                                            }
-                                            else handleException(viewHolder, task.getException());
+                                                        }
+                                                    });
+                                                }
+                                                else handleException(viewHolder, task.getException());
 
-                                        }
-                                    });
+                                            }
+                                        });
+                                    }
+                                    else handleException(viewHolder, task.getException());
                                 }
-                                else handleException(viewHolder, task.getException());
-                            }
-                        });
+                            });
+                        }
+                        else handleException(viewHolder, task.getException());
                     }
-                    else handleException(viewHolder, task.getException());
-                }
-            });
+                });
+            }
+            else
+            {
+                Toast.makeText(builder.getContext(), R.string.no_internet,Toast.LENGTH_LONG).show();
+            }
 
         });
 

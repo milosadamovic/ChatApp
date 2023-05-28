@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
 import com.example.chatapp.util.Constants;
+import com.example.chatapp.util.Util;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -64,10 +66,15 @@ public class SelectFriendAdapter extends RecyclerView.Adapter<SelectFriendAdapte
             @Override
             public void onClick(View view) {
 
-                if(context instanceof SelectFriendActivity)
+                if (Util.connectionAvailable(context))
                 {
-                    ((SelectFriendActivity)context).returnSelectedFriend(friendModel.getUserId(), friendModel.getUserName(), friendModel.getUserId() + ".jpg");
-                }
+                    if(context instanceof SelectFriendActivity)
+                    {
+                        ((SelectFriendActivity)context).returnSelectedFriend(friendModel.getUserId(), friendModel.getUserName(), friendModel.getUserId() + ".jpg");
+                    }
+                } else Toast.makeText(context, R.string.no_internet ,Toast.LENGTH_LONG).show();
+
+
 
             }
         });

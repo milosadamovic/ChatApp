@@ -60,7 +60,6 @@ public class NetworkError extends AppCompatActivity {
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .build(), networkCallback);
 
-
     }
 
 

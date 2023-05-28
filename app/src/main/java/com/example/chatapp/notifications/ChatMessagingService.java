@@ -81,8 +81,8 @@ public class ChatMessagingService extends FirebaseMessagingService {
                 }
 
 
+                /**INTENT - OVDE*/
                 Intent intentChat = new Intent(this, LoginActivity.class);
-                intentChat.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intentChat, PendingIntent.FLAG_IMMUTABLE);
                 NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

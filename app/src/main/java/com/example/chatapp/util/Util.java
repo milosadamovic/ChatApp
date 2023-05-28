@@ -70,6 +70,7 @@ public class Util {
 
             HashMap<String, String> hashMap = new HashMap<>();
             hashMap.put(NodeNames.DEVICE_TOKEN, token);
+            hashMap.put(NodeNames.ONLINE, "true");
 
             dbRefToken.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
@@ -207,18 +208,6 @@ public class Util {
                     chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount));
                 else chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount)+1);
 
-                /*Map chatUserMap = new HashMap();
-                chatUserMap.put(NodeNames.CHATS + "/" + chatUserId + "/" + currentUserId, chatMap);
-
-                rootRef.updateChildren(chatUserMap, new DatabaseReference.CompletionListener() {
-                    @Override
-                    public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
-
-                        if(error != null)
-                            Toast.makeText(context, context.getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_SHORT).show();
-                    }
-                });*/
-
 
                 chatRef.updateChildren(chatMap).addOnCompleteListener(new OnCompleteListener() {
                     @Override
@@ -285,6 +274,7 @@ public class Util {
     }
 
     public static boolean isActivityRunning(Class activityClass, Context context) {
+
         ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.AppTask> tasks = activityManager.getAppTasks();
 

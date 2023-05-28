@@ -23,11 +23,15 @@ import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.chatapp.NetworkError;
+import com.example.chatapp.findfriends.FindFriendsFragment;
 import com.example.chatapp.main.MainActivity;
 import com.example.chatapp.R;
+import com.example.chatapp.requests.RequestsFragment;
 import com.example.chatapp.util.NodeNames;
 import com.example.chatapp.login.LoginActivity;
 import com.example.chatapp.password.ChangePasswordActivity;
+import com.example.chatapp.util.Util;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -62,7 +66,6 @@ public class ProfileActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private FirebaseUser currentUser;
 
-    private static boolean isResumed = false;
     private Map<String, String> changeFlagValue;
     private boolean flag = false;
 
@@ -72,6 +75,8 @@ public class ProfileActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        if(!Util.connectionAvailable(this)) startActivity(new Intent(this, NetworkError.class));
 
 
         etEmail = findViewById(R.id.etEmail);
@@ -109,38 +114,37 @@ public class ProfileActivity extends AppCompatActivity {
     public void btnLogoutClick(View view)
     {
 
-        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        if(Util.connectionAvailable(this))
+        {
+            FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
 
-        currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        dbRefTokens = FirebaseDatabase.getInstance().getReference().child(NodeNames.TOKEN).child(currentUser.getUid());
+            currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            dbRefTokens = FirebaseDatabase.getInstance().getReference().child(NodeNames.TOKEN).child(currentUser.getUid());
 
+            dbRefTokens.setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
 
-       if(firebaseAuth != null)
-       {
-           dbRefTokens.setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
-               @Override
-               public void onComplete(@NonNull Task<Void> task) {
+                    if(task.isSuccessful())
+                    {
+                        /**INTENT - OVDE*/
+                        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                        firebaseAuth.signOut();
+                    }
+                    else
+                    {
+                        Toast.makeText(ProfileActivity.this, getString(R.string.something_went_wrong, task.getException()), Toast.LENGTH_LONG);
+                        Log.d("ProfileActivity", "onCancelled() called, error: " + task.getException());
+                    }
 
-                   if(task.isSuccessful())
-                   {
+                }
+            });
 
-                       /*DatabaseReference dbRefCurrentUser = dbRefUsers.child(currentUser.getUid());
-                       dbRefCurrentUser.child(NodeNames.ONLINE).setValue(false);*/
-
-                       firebaseAuth.signOut();
-                       startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
-                       finish();
-                   }
-                   else
-                   {
-                       Toast.makeText(ProfileActivity.this, getString(R.string.something_went_wrong, task.getException()), Toast.LENGTH_LONG);
-                   }
-
-               }
-           });
-
-       }
+       }else  Toast.makeText(this, R.string.no_internet ,Toast.LENGTH_LONG).show();
     }
 
     public void btnSaveClick(View view)
@@ -149,10 +153,15 @@ public class ProfileActivity extends AppCompatActivity {
             etName.setError(getString(R.string.enter_name));
         else
         {
-            if(localFileUri != null)
-                updateNameAndPhoto();
-            else
-                updateOnlyName();
+            if(Util.connectionAvailable(this))
+            {
+                if(localFileUri != null)
+                    updateNameAndPhoto();
+                else
+                    updateOnlyName();
+            }
+            else Toast.makeText(this, R.string.no_internet ,Toast.LENGTH_LONG).show();
+
         }
     }
 
@@ -187,89 +196,94 @@ public class ProfileActivity extends AppCompatActivity {
     private void removePhoto()
     {
 
-        pB.setVisibility(View.VISIBLE);
+        if(Util.connectionAvailable(this))
+        {
+            pB.setVisibility(View.VISIBLE);
 
-        String strFileName = currentUser.getUid() + ".jpg";
-        final StorageReference fileRef = fileStorage.child("images/" + strFileName);
+            String strFileName = currentUser.getUid() + ".jpg";
+            final StorageReference fileRef = fileStorage.child("images/" + strFileName);
 
 
-        fileRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
+            fileRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
 
-                if(task.isSuccessful())
-                {
-                    UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
-                            .setDisplayName(etName.getText().toString().trim())
-                            .setPhotoUri(null)
-                            .build();
+                    if(task.isSuccessful())
+                    {
+                        UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(etName.getText().toString().trim())
+                                .setPhotoUri(null)
+                                .build();
 
-                    serverFileUri = null;
+                        serverFileUri = null;
 
-                    currentUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
+                        currentUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
 
-                            pB.setVisibility(View.GONE);
+                                pB.setVisibility(View.GONE);
 
-                            if(task.isSuccessful())
-                            {
-                                String currUserId = currentUser.getUid();
+                                if(task.isSuccessful())
+                                {
+                                    String currUserId = currentUser.getUid();
 
-                                HashMap<String,String> hashMap = new HashMap<>();
-                                hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
-                                hashMap.put(NodeNames.PHOTO, "");
-                                hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
-                                hashMap.put(NodeNames.ONLINE, "true");
+                                    HashMap<String,String> hashMap = new HashMap<>();
+                                    hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
+                                    hashMap.put(NodeNames.PHOTO, "");
+                                    hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
 
-                                dbRefUsers.child(currUserId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
+                                    dbRefUsers.child(currUserId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
 
-                                        if(task.isSuccessful())
-                                        {
-                                            dbRefChats.child(currUserId).addListenerForSingleValueEvent(new ValueEventListener() {
-                                                @Override
-                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            if(task.isSuccessful())
+                                            {
+                                                dbRefChats.child(currUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                                                    if(snapshot.exists())
-                                                    {
-                                                        changeFlagValue = ServerValue.TIMESTAMP;
-                                                        for (DataSnapshot ds : snapshot.getChildren())
+                                                        if(snapshot.exists())
                                                         {
-
-                                                            if(ds.getKey() != null)
+                                                            changeFlagValue = ServerValue.TIMESTAMP;
+                                                            for (DataSnapshot ds : snapshot.getChildren())
                                                             {
-                                                                String userId = ds.getKey();
-                                                                dbRefChats.child(userId).child(currUserId).child(NodeNames.CHANGE_IMAGE_FLAG).setValue(changeFlagValue);
+
+                                                                if(ds.getKey() != null)
+                                                                {
+                                                                    String userId = ds.getKey();
+                                                                    dbRefChats.child(userId).child(currUserId).child(NodeNames.CHANGE_IMAGE_FLAG).setValue(changeFlagValue);
+                                                                }
+
                                                             }
-
                                                         }
+                                                        Toast.makeText(ProfileActivity.this, R.string.photo_removed_successfully, Toast.LENGTH_LONG).show();
                                                     }
-                                                    Toast.makeText(ProfileActivity.this, R.string.photo_removed_successfully, Toast.LENGTH_LONG).show();
-                                                }
 
-                                                @Override
-                                                public void onCancelled(@NonNull DatabaseError error) {
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) {
 
-                                                    Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
-                                                }
-                                            });
+                                                        Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                                    }
+                                                });
+                                            }
                                         }
-                                    }
-                                });
+                                    });
 
+                                }
+                                else
+                                {
+                                    Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_remove_photo, task.getException()), Toast.LENGTH_LONG);
+                                }
                             }
-                            else
-                            {
-                                Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_remove_photo, task.getException()), Toast.LENGTH_LONG);
-                            }
-                        }
-                    });
+                        });
+                    }
+
                 }
+            });
+        }
+        else Toast.makeText(this, R.string.no_internet ,Toast.LENGTH_LONG).show();
 
-            }
-        });
+
     }
 
     public void pickImage()
@@ -358,7 +372,6 @@ public class ProfileActivity extends AppCompatActivity {
                                                 hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                                                 hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                                                 hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
-                                                hashMap.put(NodeNames.ONLINE, "true");
 
                                                 dbRefUsers.child(currUserId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
@@ -451,7 +464,6 @@ public class ProfileActivity extends AppCompatActivity {
                                                             hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                                                             hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                                                             hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
-                                                            hashMap.put(NodeNames.ONLINE, "true");
                                                             hashMap.put(NodeNames.CHANGE_IMAGE_FLAG, String.valueOf(flag));
 
                                                            dbRefUsers.child(currUserId).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -536,7 +548,6 @@ public class ProfileActivity extends AppCompatActivity {
                     HashMap<String,String> hashMap = new HashMap<>();
                     hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
                     hashMap.put(NodeNames.EMAIL, etEmail.getText().toString().trim());
-                    hashMap.put(NodeNames.ONLINE, "true");
 
                     if(serverFileUri != null) hashMap.put(NodeNames.PHOTO, serverFileUri.getPath());
                     else hashMap.put(NodeNames.PHOTO, "");
@@ -591,34 +602,26 @@ public class ProfileActivity extends AppCompatActivity {
 
     public void btnChangePasswordClick(View view)
     {
+           /**INTENT - OVDE*/
           startActivity(new Intent(ProfileActivity.this, ChangePasswordActivity.class));
     }
 
 
-
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-    }
-
     @Override
     protected void onResume() {
-        isResumed = true;
         super.onResume();
+        if(!Util.connectionAvailable(this)) startActivity(new Intent(this, NetworkError.class));
     }
 
     @Override
     protected void onPause() {
-        isResumed = false;
         super.onPause();
     }
 
-    public static boolean isActivityResumed()
-    {
-        return isResumed;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("ProfileActivity", "onDestroy() called");
+
     }
 }

@@ -38,6 +38,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.chatapp.NetworkError;
 import com.example.chatapp.main.MainActivity;
 import com.example.chatapp.R;
 import com.example.chatapp.util.Constants;
@@ -88,7 +89,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private List<String> messageIds;
 
     private FirebaseAuth firebaseAuth;
-    private DatabaseReference rootRef, dbRefMessagesUser, dbRefMessagesChat, dbRefChatsUser, dbRefChatsChat;
+    private DatabaseReference rootRef, dbRefMessagesUser, dbRefMessagesChat, dbRefChatsUser, dbRefChatsChat, dbRefTokens;
     private Query messageQuery;
     private ChildEventListener childEventListener;
 
@@ -109,6 +110,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        if(!Util.connectionAvailable(this))
+                 startActivity(new Intent(this, NetworkError.class));
 
 
         /**POSTAVLJANJE ACTION BARA*/
@@ -270,25 +273,31 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
 
         /**SETOVANJE ONLINE/OFFLINE STATUSA*/
-        DatabaseReference dbRefUsers = rootRef.child(NodeNames.USERS).child(chatUserId);
-        dbRefUsers.addValueEventListener(new ValueEventListener() {
+        dbRefTokens = rootRef.child(NodeNames.TOKEN).child(chatUserId);
+        dbRefTokens.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
                 String status = "";
 
-                if(snapshot.child(NodeNames.ONLINE).getValue() != null)
-                    status = snapshot.child(NodeNames.ONLINE).getValue().toString();
+                if(snapshot.exists())
+                {
+                    if(snapshot.child(NodeNames.ONLINE).getValue() != null)
+                        status = snapshot.child(NodeNames.ONLINE).getValue().toString();
 
-                if(status.equals("true"))
-                    tvUserStatus.setText(Constants.STATUS_ONLINE);
-                else
-                    tvUserStatus.setText(Constants.STATUS_OFFLINE);
+                    if(status.equals("true"))
+                        tvUserStatus.setText(Constants.STATUS_ONLINE);
+                    else
+                        tvUserStatus.setText(Constants.STATUS_OFFLINE);
+                }
+                else tvUserStatus.setText(Constants.STATUS_OFFLINE);
+
+
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                 Toast.makeText(ChatActivity.this, getString(R.string.something_went_wrong,error.getMessage()), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -308,7 +317,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void afterTextChanged(Editable s) {
 
-               // DatabaseReference currentUserRef = rootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId);
                 if(s.toString().matches(""))
                 {
                     dbRefChatsUser.child(NodeNames.TYPING).setValue(Constants.TYPING_STOPPED);
@@ -318,7 +326,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                     dbRefChatsUser.child(NodeNames.TYPING).setValue(Constants.TYPING_STARTED);
                 }
 
-               // DatabaseReference chatUserRef = rootRef.child(NodeNames.CHATS).child(chatUserId).child(currentUserId);
 
                 /**OVDE SE MOZE AZURIRATI SLIKA USERA*/
                 dbRefChatsChat.addValueEventListener(new ValueEventListener() {
@@ -345,8 +352,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-
-        /**BRISANJE NOTIFIKACIJE-PORUKA UKOLIKO POSTOJI*/
         Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_MESSAGEID);
 
 
@@ -556,45 +561,49 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == RESULT_OK)
+        if(Util.connectionAvailable(this))
         {
-            if(requestCode == REQUEST_CODE_CAPTURE_IMAGE)
+            if (resultCode == RESULT_OK)
             {
-                Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+                if(requestCode == REQUEST_CODE_CAPTURE_IMAGE)
+                {
+                    Bitmap bitmap = (Bitmap) data.getExtras().get("data");
 
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
 
-                uploadBytes(bytes, Constants.MESSAGE_TYPE_IMAGE);
+                    uploadBytes(bytes, Constants.MESSAGE_TYPE_IMAGE);
+                }
+                else if(requestCode == REQUEST_CODE_PICK_IMAGE)
+                {
+                    Uri uri = data.getData();
+                    Log.d("URI", uri.toString());
+                    uploadFile(uri, Constants.MESSAGE_TYPE_IMAGE);
+                }
+                else if(requestCode == REQUEST_CODE_PICK_VIDEO)
+                {
+                    Uri uri = data.getData();
+                    uploadFile(uri, Constants.MESSAGE_TYPE_VIDEO);
+                }
 
+                else if(requestCode == REQUEST_CODE_FORWARD_MESSAGE)
+                {
+                    /**INTENT - OVDE*/
+                    Intent intent = new Intent(this, ChatActivity.class);
+                    intent.putExtra(Extras.USER_KEY, data.getStringExtra(Extras.USER_KEY));
+                    intent.putExtra(Extras.USER_NAME, data.getStringExtra(Extras.USER_NAME));
+                    intent.putExtra(Extras.PHOTO_NAME, data.getStringExtra(Extras.PHOTO_NAME));
+
+                    intent.putExtra(Extras.MESSAGE, data.getStringExtra(Extras.MESSAGE));
+                    intent.putExtra(Extras.MESSAGE_ID, data.getStringExtra(Extras.MESSAGE_ID));
+                    intent.putExtra(Extras.MESSAGE_TYPE, data.getStringExtra(Extras.MESSAGE_TYPE));
+
+                    startActivity(intent);
+                    finish();
+                }
             }
-            else if(requestCode == REQUEST_CODE_PICK_IMAGE)
-            {
-                Uri uri = data.getData();
-                Log.d("URI", uri.toString());
-                uploadFile(uri, Constants.MESSAGE_TYPE_IMAGE);
-            }
-            else if(requestCode == REQUEST_CODE_PICK_VIDEO)
-            {
-                Uri uri = data.getData();
-                uploadFile(uri, Constants.MESSAGE_TYPE_VIDEO);
-            }
+        } else  Toast.makeText(this, R.string.no_internet ,Toast.LENGTH_LONG).show();
 
-            else if(requestCode == REQUEST_CODE_FORWARD_MESSAGE)
-            {
-                Intent intent = new Intent(this, ChatActivity.class);
-                intent.putExtra(Extras.USER_KEY, data.getStringExtra(Extras.USER_KEY));
-                intent.putExtra(Extras.USER_NAME, data.getStringExtra(Extras.USER_NAME));
-                intent.putExtra(Extras.PHOTO_NAME, data.getStringExtra(Extras.PHOTO_NAME));
-
-                intent.putExtra(Extras.MESSAGE, data.getStringExtra(Extras.MESSAGE));
-                intent.putExtra(Extras.MESSAGE_ID, data.getStringExtra(Extras.MESSAGE_ID));
-                intent.putExtra(Extras.MESSAGE_TYPE, data.getStringExtra(Extras.MESSAGE_TYPE));
-
-                startActivity(intent);
-                finish();
-            }
-        }
     }
 
     private void uploadFile(Uri uri, String messageType)
@@ -778,7 +787,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
                                             if(!task.isSuccessful())
                                                 Toast.makeText(ChatActivity.this, getString(R.string.failed_to_delete_file, task.getException()), Toast.LENGTH_SHORT).show();
-
                                         }
                                     });
                                 }
@@ -795,9 +803,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         });
-
-
-
 
     }
 
@@ -967,6 +972,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     public void forwardMessage(String selectedMessageId, String selectedMessage, String selectedMessageType, String chatUserId) {
 
+        /**INTENT - OVDE*/
         Intent intent = new Intent(this, SelectFriendActivity.class);
         intent.putExtra(Extras.MESSAGE, selectedMessage);
         intent.putExtra(Extras.MESSAGE_ID, selectedMessageId);
@@ -995,10 +1001,10 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onResume() {
-        isResumed = true;
-        //Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_MESSAGEID);
         super.onResume();
         Log.d("ChatActivity:", "onResume() called");
+        isResumed = true;
+        Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_MESSAGEID);
     }
 
     @Override
