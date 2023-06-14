@@ -107,7 +107,7 @@ public class SelectFriendActivity extends AppCompatActivity {
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
 
-                        Toast.makeText(SelectFriendActivity.this, getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_LONG).show();
+                        Toast.makeText(SelectFriendActivity.this, R.string.exception, Toast.LENGTH_LONG).show();
 
                     }
                 });
@@ -140,7 +140,7 @@ public class SelectFriendActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(SelectFriendActivity.this, getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_LONG).show();
+                        Toast.makeText(SelectFriendActivity.this,R.string.exception, Toast.LENGTH_LONG).show();
                     }
                 });
 
@@ -166,7 +166,7 @@ public class SelectFriendActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-                Toast.makeText(SelectFriendActivity.this, getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_LONG).show();
+                Toast.makeText(SelectFriendActivity.this, R.string.exception, Toast.LENGTH_LONG).show();
 
             }
         };
@@ -201,6 +201,5 @@ public class SelectFriendActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("SelectFriendActivity", "onDestroy() called");
     }
 }

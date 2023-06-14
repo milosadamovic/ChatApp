@@ -40,15 +40,12 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        /**INIT FIREBASE */
         FirebaseApp.initializeApp(this);
 
 
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         pB = findViewById(R.id.progressBar);
-
-
     }
 
 
@@ -83,27 +80,25 @@ public class LoginActivity extends AppCompatActivity {
                                         @Override
                                         public void onComplete(@NonNull Task<String> task) {
                                             if (!task.isSuccessful()) {
-                                                Toast.makeText(LoginActivity.this, getString(R.string.failed_to_get_token, task.getException()), Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(LoginActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
                                             }
                                             String token = task.getResult();
                                             Util.updateDeviceToken(LoginActivity.this, token);
                                         }
                                     });
 
-                            /**INTENT - OVDE*/
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             startActivity(intent);
                             finish();
                         } else {
-                            Toast.makeText(getBaseContext(), "Login Failed: " + task.getException(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getBaseContext(), R.string.exception, Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
             }
             else
             {
-                /**INTENT - OVDE*/
                 startActivity(new Intent(LoginActivity.this, NetworkError.class));
             }
         }
@@ -111,22 +106,18 @@ public class LoginActivity extends AppCompatActivity {
 
     public void tvSignupClick(View view)
     {
-        /**INTENT - OVDE*/
         startActivity(new Intent(this, SignupActivity.class));
     }
 
 
     public void tvResetPasswordClick(View view)
     {
-        /**INTENT - OVDE*/
         startActivity(new Intent(LoginActivity.this, ResetPasswordActivity.class));
     }
 
 
     @Override
     protected void onStart() {
-
-        Log.d("LoginActivity", "onStart() called");
         super.onStart();
 
         firebaseAuth = FirebaseAuth.getInstance();
@@ -135,13 +126,12 @@ public class LoginActivity extends AppCompatActivity {
 
         if(currentUser != null)
         {
-            /**NAKON PRIJAVLJIVANJA NOVIH KORISNIKA OVDE IM SE GENERISE TOKEN, STARI KORISNISCIMA OSTAJE PRETHODNI UKOLIKO SE NISU ODJAVILI*/
             FirebaseMessaging.getInstance().getToken()
                     .addOnCompleteListener(new OnCompleteListener<String>() {
                         @Override
                         public void onComplete(@NonNull Task<String> task) {
                             if (!task.isSuccessful()) {
-                                Toast.makeText(LoginActivity.this, getString(R.string.failed_to_get_token, task.getException()), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
                             }
 
                             String token = task.getResult();
@@ -149,7 +139,6 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
 
-            /**INTENT - OVDE*/
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
@@ -161,25 +150,21 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("LoginActivity", "onResume() called");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d("LoginActivity", "onPause() called");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d("LoginActivity", "onStop() called");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("LoginActivity", "onDestroy() called");
     }
 
     @Override

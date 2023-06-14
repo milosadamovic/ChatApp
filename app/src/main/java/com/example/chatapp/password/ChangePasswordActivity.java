@@ -83,21 +83,19 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
                                                 if(task.isSuccessful())
                                                 {
-                                                    Toast.makeText(ChangePasswordActivity.this, R.string.password_changed_successfully, Toast.LENGTH_LONG).show();
+                                                   // Toast.makeText(ChangePasswordActivity.this, R.string.password_changed_successfully, Toast.LENGTH_LONG).show();
                                                     finish();
                                                 }
                                                 else
                                                 {
-                                                    Toast.makeText(ChangePasswordActivity.this, getString(R.string.something_went_wrong,task.getException()),Toast.LENGTH_LONG).show();
-                                                    Log.d("ChangePasswordActivity", "Exception1: " + task.getException());
+                                                    Toast.makeText(ChangePasswordActivity.this, R.string.exception,Toast.LENGTH_LONG).show();
                                                 }
                                             }
                                         });
 
 
                                     } else {
-                                        Toast.makeText(ChangePasswordActivity.this, getString(R.string.something_went_wrong,task.getException()),Toast.LENGTH_LONG).show();
-                                        Log.d("ChangePasswordActivity", "Exception2: " + task.getException());
+                                        Toast.makeText(ChangePasswordActivity.this, R.string.exception,Toast.LENGTH_LONG).show();
                                     }
                                 }
                             });
@@ -123,7 +121,5 @@ public class ChangePasswordActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("ChangePasswordActivity", "onDestroy() called");
-
     }
 }

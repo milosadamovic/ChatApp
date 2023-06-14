@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-        Log.d("MainActivity", "onCreate() called");
 
         setContentView(R.layout.activity_main);
 
@@ -51,8 +50,6 @@ public class MainActivity extends AppCompatActivity {
         dbRefTokens = FirebaseDatabase.getInstance().getReference().child(NodeNames.TOKEN).child(firebaseAuth.getCurrentUser().getUid());
         dbRefTokens.child(NodeNames.ONLINE).setValue(true);
 
-
-        /**POZIVA SE KADA KORISNIK ZATVORI APLIKACIJU ILI SE ODJAVI - KASNIJE SE POZIVA AKO DODJE DO NASILNOG PREKIDA MREZE*/
         dbRefTokens.child(NodeNames.ONLINE).onDisconnect().setValue(false);
 
         setViewPager();
@@ -120,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
 
         int id = item.getItemId();
 
-        /**INTENT - OVDE*/
         if(id == R.id.mnuProfile)
             startActivity(new Intent(MainActivity.this, ProfileActivity.class));
 
@@ -129,34 +125,26 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void onStart() {
-        Log.d("MainActivity", "onStart() called");
         super.onStart();
     }
 
     @Override
     public void onResume() {
-        Log.d("MainActivity", "onResume() called");
         super.onResume();
     }
 
     @Override
     public void onPause() {
-        Log.d("MainActivity", "onPause() called");
         super.onPause();
     }
 
     @Override
     public void onStop() {
-        Log.d("MainActivity", "onStop() called");
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        Log.d("MainActivity", "onDestroy() called");
         super.onDestroy();
-
-        //dbRefTokens.child(NodeNames.ONLINE).setValue(false);
-
     }
 }

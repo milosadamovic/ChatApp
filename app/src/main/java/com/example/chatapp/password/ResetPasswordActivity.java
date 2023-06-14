@@ -49,7 +49,6 @@ public class ResetPasswordActivity extends AppCompatActivity {
     }
 
 
-    /**POTREBNA PROVERA DA LI IMA KONEKCIJE SA MREZOM PROVERA DA LI IMA KONEKCIJE SA MREZOM*/
     public void btnResetPasswordClick(View view)
     {
         String email = etEmail.getText().toString().trim();

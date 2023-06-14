@@ -57,7 +57,6 @@ public class RequestsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.d("RequestFragment", "onCreateView() called");
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_requests, container, false);
@@ -94,21 +93,18 @@ public class RequestsFragment extends Fragment {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                Log.d("RequestFragment", "onChildAdded() called");
                 updateRequests(snapshot.getKey());
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                Log.d("RequestFragment", "onChildChanged() called");
                 updateRequests(snapshot.getKey());
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
-                Log.d("RequestFragment", "onChildRemoved() called");
                updateRequests(snapshot.getKey());
             }
 
@@ -120,8 +116,7 @@ public class RequestsFragment extends Fragment {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-                Toast.makeText(getActivity(), getActivity().getString(R.string.failed_to_fetch_friend_requests, error.getMessage()),Toast.LENGTH_SHORT).show();
-                Log.d("RequestFragment", "onCancelled() called, error: " + error.getMessage());
+                Toast.makeText(getActivity(), R.string.exception,Toast.LENGTH_SHORT).show();
                 pB.setVisibility(View.GONE);
             }
         };
@@ -133,7 +128,6 @@ public class RequestsFragment extends Fragment {
 
     @Override
     public void onStart() {
-        Log.d("RequestFragment", "onStart() called");
         super.onStart();
     }
 
@@ -150,19 +144,16 @@ public class RequestsFragment extends Fragment {
         else startActivity(new Intent(requireContext(),NetworkError.class));
 
 
-        Log.d("RequestFragment", "onResume() called");
     }
 
 
     @Override
     public void onPause() {
-        Log.d("RequestFragment", "onPause() called");
         super.onPause();
     }
 
     @Override
     public void onStop() {
-        Log.d("RequestFragment", "onStop() called");
         super.onStop();
     }
 
@@ -170,10 +161,6 @@ public class RequestsFragment extends Fragment {
     public  void updateRequests(String userId) {
 
         pB.setVisibility(View.GONE);
-
-        /**U SLUCAJU REQUEST_STATUS_SENT NISTA SE NE PRIKAZUJE
-         // U SLUCAJU REQUEST_STATUS_RECEIVED PRIKAZUJEMO KORISNIKA
-         //U SLUCAJU REQUEST_STATUS_ACCEPTER IZBACUJEMO KORISNIKA */
 
         dbRefFriendRequests.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -204,8 +191,7 @@ public class RequestsFragment extends Fragment {
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) {
 
-                                Toast.makeText(getContext(), getString(R.string.failed_to_fetch_friend_requests, error.getMessage()), Toast.LENGTH_SHORT).show();
-                                Log.d("RequestFragment", "onCancelled() called, error: " + error.getMessage());
+                                Toast.makeText(getContext(), R.string.exception, Toast.LENGTH_SHORT).show();
                                 pB.setVisibility(View.GONE);
                             }
                         });
@@ -220,8 +206,6 @@ public class RequestsFragment extends Fragment {
                 }
                 else
                 {
-                    /***KANCELOVAN ZAHTEV
-                     // ODBIJEN ZAHTEV AKO JE TIPA REQUEST_STATUS_RECEIVED */
                     if(userIds.contains(userId))
                     {
                         int indexOfUser = userIds.indexOf(userId);
@@ -229,18 +213,13 @@ public class RequestsFragment extends Fragment {
                         requestModelList.remove(indexOfUser);
                         adapter.notifyItemRemoved(indexOfUser);
                     }
-
-                    /**KANCELOVAN ZAHTEV
-                     //ODBIJEN ZAHTEV AKO JE TIPA REQUEST_STATUS_SENT
-                     // DO NOTHING */
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-                Toast.makeText(getContext(), getString(R.string.failed_to_fetch_friend_requests, error.getMessage()), Toast.LENGTH_SHORT).show();
-                Log.d("RequestFragment", "onCancelled() called, error: " + error.getMessage());
+                Toast.makeText(getContext(), R.string.exception, Toast.LENGTH_SHORT).show();
                 pB.setVisibility(View.GONE);
 
             }

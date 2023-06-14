@@ -24,7 +24,7 @@
         app:srcCompat="@drawable/default_profile" />
 
     <androidx.cardview.widget.CardView
-        android:layout_width="370dp"
+        android:layout_width="340dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="4dp"
@@ -43,7 +43,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="350dp"
+                android:layout_width="320dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp">
 
@@ -58,7 +58,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="350dp"
+                android:layout_width="320dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp">
 
@@ -73,7 +73,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="350dp"
+                android:layout_width="320dp"
                 android:layout_height="match_parent"
                 android:layout_marginTop="8dp"
                 app:passwordToggleEnabled="true">
@@ -89,7 +89,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="350dp"
+                android:layout_width="320dp"
                 android:layout_height="match_parent"
                 android:layout_marginTop="8dp"
                 app:passwordToggleEnabled="true">

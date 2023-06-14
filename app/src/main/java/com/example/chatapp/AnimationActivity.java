@@ -15,7 +15,6 @@ public class AnimationActivity extends AppCompatActivity {
 
 
     private ImageView ivLogo;
-    private TextView tvTitle;
     private Animation scaleAnimation;
 
     @Override
@@ -27,7 +26,6 @@ public class AnimationActivity extends AppCompatActivity {
             getSupportActionBar().hide();
 
         ivLogo = findViewById(R.id.ivLogo);
-        tvTitle = findViewById(R.id.tvTitle);
 
         scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.scale_animation);
 
@@ -56,6 +54,5 @@ public class AnimationActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         ivLogo.startAnimation(scaleAnimation);
-        tvTitle.startAnimation(scaleAnimation);
     }
 }

@@ -62,7 +62,6 @@ public class ChatFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.d("ChatFragment", "onCreateView() called");
 
         // Inflate the layout for this fragment
         View rootView  = inflater.inflate(R.layout.fragment_chat, container, false);
@@ -77,7 +76,6 @@ public class ChatFragment extends Fragment{
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
 
-        Log.d("ChatFragment", "onViewCreated() called");
 
         super.onViewCreated(view, savedInstanceState);
 
@@ -100,7 +98,6 @@ public class ChatFragment extends Fragment{
         dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        /**LINIJA ISPOD PRAVI PROBLEM KOD LOGOUTA*/
         dbRefChats = FirebaseDatabase.getInstance().getReference().child(NodeNames.CHATS).child(currentUser.getUid());
 
         childEventListener = new ChildEventListener() {
@@ -109,22 +106,18 @@ public class ChatFragment extends Fragment{
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
                     updateList(snapshot, 0, snapshot.getKey());
-                    Log.d("ChatFragment", "onChildAdded() called");
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
                     updateList(snapshot, 1, snapshot.getKey());
-                    Log.d("ChatFragment", "onChildChanged() called");
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
                    updateList(snapshot, 2, snapshot.getKey());
-                    Log.d("ChatFragment", "onChildRemoved() called");
-
             }
 
             @Override
@@ -203,7 +196,7 @@ public class ChatFragment extends Fragment{
                  @Override
                  public void onCancelled(@NonNull DatabaseError error) {
 
-                     Toast.makeText(getActivity(), getActivity().getString(R.string.failed_to_fetch_chat_list, error.getMessage()), Toast.LENGTH_SHORT).show();
+                     Toast.makeText(getActivity(), R.string.exception, Toast.LENGTH_SHORT).show();
 
                  }
              });
@@ -225,15 +218,12 @@ public class ChatFragment extends Fragment{
             startActivity(new Intent(requireContext(), NetworkError.class));
         }
 
-        Log.d("ChatFragment", "onResume() called");
-
     }
 
 
    @Override
     public void onStart() {
         super.onStart();
-        Log.d("ChatFragment", "onStart() called");
     }
 
     @Override
@@ -245,31 +235,26 @@ public class ChatFragment extends Fragment{
     @Override
     public void onPause() {
         super.onPause();
-        Log.d("ChatFragment", "onPause() called");
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        Log.d("ChatFragment", "onStop() called");
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d("ChatFragment", "onDestroyView() called");
     }
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        Log.d("ChatFragment", "onAttach() called");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.d("ChatFragment", "onDetach() called");
     }
 
 

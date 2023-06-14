@@ -56,17 +56,15 @@ public class ChatMessagingService extends FirebaseMessagingService {
 
 
 
-        /**AKO SE VEC NALAZIMO U CETU SA OSOBOM OD KOJE PRIMAMO NOTIFIKACIJU NECEMO PRIKAZATI NOTIFIKACIJU
-         *  (NE MOZEMO SE NALAZITI U CETU SA OSOBOM KOJA NAM ODOBRAVA ILI ODBIJA REQUEST ILI KOJA NAM SALJE REQUEST)*/
         if(isChatActivityRunning && Objects.equals(userId, ChatActivity.openChatUserId) && ChatActivity.isActivityResumed() && Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_MESSAGE)) return;
 
         else {
+
 
                 String title = message.getData().get(Constants.NOTIFICATION_TITLE);
                 String msg = message.getData().get(Constants.NOTIFICATION_MESSAGE);
                 String notificationId = "";
 
-                /**PROVERAVAMO KOG JE TIPA NOTIFIKACIJA*/
                 if(Objects.equals(notificationType, Constants.NOTIFICATION_TYPE_REPLY))
                 {
                     notificationId = Constants.NOTIFICATION_TYPE_REPLYID;
@@ -81,7 +79,6 @@ public class ChatMessagingService extends FirebaseMessagingService {
                 }
 
 
-                /**INTENT - OVDE*/
                 Intent intentChat = new Intent(this, LoginActivity.class);
 
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intentChat, PendingIntent.FLAG_IMMUTABLE);
@@ -103,7 +100,6 @@ public class ChatMessagingService extends FirebaseMessagingService {
                 notificationBuilder.setSound(defaultSoundUri);
                 notificationBuilder.setContentIntent(pendingIntent);
 
-                /**PROVERAVAMO DA LI JE PORUKA TEXT ILI FAJL*/
 
                 if (msg.startsWith("https://firebasestorage.")) {
                     try {

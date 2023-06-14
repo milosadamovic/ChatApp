@@ -27,13 +27,13 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
-        android:layout_width="370dp"
+        android:layout_width="340dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="160dp"
         android:layout_marginEnd="4dp"
         android:layout_marginBottom="8dp"
         app:cardCornerRadius="16dp"
-        app:cardElevation="8dp"
+        app:cardElevation="10dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -48,7 +48,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="350dp"
+                android:layout_width="320dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp">
 
@@ -63,7 +63,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="350dp"
+                android:layout_width="320dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 app:passwordToggleEnabled="true">
@@ -122,20 +122,21 @@
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="50dp"
             android:layout_weight="1"
+            android:layout_marginRight="30dp"
             android:text="@string/donthave_account"
-            android:textColor="@color/colorSecondaryVariant" />
+            android:textColor="@color/colorSecondaryVariant"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="50dp"
             android:layout_weight="1"
+            android:layout_marginLeft="30dp"
             android:onClick="tvSignupClick"
             android:text="@string/signup"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textColor="@color/colorSecondaryVariant"
             tools:ignore="TouchTargetSizeCheck" />
     </LinearLayout>

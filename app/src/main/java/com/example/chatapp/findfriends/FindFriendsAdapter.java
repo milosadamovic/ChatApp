@@ -1,6 +1,8 @@
 package com.example.chatapp.findfriends;
 
 import android.content.Context;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,7 +67,6 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
            StorageReference mountRef = storageRef.child(Constants.IMAGES_FOLDER + "/" + friendsModel.getPhotoName());
 
 
-         /**CITANJE IMENA KORISNIKA*/
            dbRefUsers = FirebaseDatabase.getInstance().getReference().child(NodeNames.USERS);
            String userID = friendsModel.getUserId();
 
@@ -79,11 +80,10 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                @Override
                public void onCancelled(@NonNull DatabaseError error) {
-                   Toast.makeText(context, context.getString(R.string.failed_to_fetch_friend_name, error.getMessage()), Toast.LENGTH_SHORT).show();
+                   Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
                }
            });
 
-            /**CITANJE PROFILNE SLIKE*/
             mountRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
                 @Override
                 public void onComplete(@NonNull Task<Uri> task) {
@@ -149,7 +149,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                                            if(task.isSuccessful())
                                            {
-                                               Toast.makeText(context, R.string.request_sent_successfully,Toast.LENGTH_SHORT).show();
+                                              // Toast.makeText(context, R.string.exception,Toast.LENGTH_SHORT).show();
 
                                                String title = "New Friend Request";
                                                String message = "Friend request from " + currentUser.getDisplayName();
@@ -163,7 +163,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                                            else
                                            {
-                                               Toast.makeText(context, context.getString(R.string.failed_to_send_request, task.getException()),Toast.LENGTH_SHORT).show();
+                                               Toast.makeText(context, R.string.exception,Toast.LENGTH_SHORT).show();
                                                holder.btnSendRequest.setVisibility(View.VISIBLE);
                                                holder.pbRequest.setVisibility(View.GONE);
                                                holder.btnCancelRequest.setVisibility(View.GONE);
@@ -174,7 +174,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                                }
                                else
                                {
-                                   Toast.makeText(context, context.getString(R.string.failed_to_send_request, task.getException()),Toast.LENGTH_SHORT).show();
+                                   Toast.makeText(context, R.string.exception,Toast.LENGTH_SHORT).show();
                                    holder.btnSendRequest.setVisibility(View.VISIBLE);
                                    holder.pbRequest.setVisibility(View.GONE);
                                    holder.btnCancelRequest.setVisibility(View.GONE);
@@ -215,14 +215,14 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
 
                                         if(task.isSuccessful())
                                         {
-                                            Toast.makeText(context, R.string.request_cancelled_successfully,Toast.LENGTH_SHORT).show();
+                                            //Toast.makeText(context, R.string.request_cancelled_successfully,Toast.LENGTH_SHORT).show();
                                             holder.btnSendRequest.setVisibility(View.VISIBLE);
                                             holder.pbRequest.setVisibility(View.GONE);
                                             holder.btnCancelRequest.setVisibility(View.GONE);
                                         }
                                         else
                                         {
-                                            Toast.makeText(context, context.getString(R.string.failed_to_cancel_request3, task.getException()),Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(context, R.string.exception,Toast.LENGTH_SHORT).show();
                                             holder.btnSendRequest.setVisibility(View.GONE);
                                             holder.pbRequest.setVisibility(View.GONE);
                                             holder.btnCancelRequest.setVisibility(View.VISIBLE);
@@ -233,7 +233,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
                             }
                             else
                             {
-                                Toast.makeText(context, context.getString(R.string.failed_to_cancel_request3, task.getException()),Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, R.string.exception,Toast.LENGTH_SHORT).show();
                                 holder.btnSendRequest.setVisibility(View.GONE);
                                 holder.pbRequest.setVisibility(View.GONE);
                                 holder.btnCancelRequest.setVisibility(View.VISIBLE);
@@ -252,6 +252,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter<FindFriendsAdapter.
             }
         });
     }
+
 
     @Override
     public int getItemCount() {

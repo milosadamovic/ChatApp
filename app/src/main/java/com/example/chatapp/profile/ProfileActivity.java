@@ -128,7 +128,6 @@ public class ProfileActivity extends AppCompatActivity {
 
                     if(task.isSuccessful())
                     {
-                        /**INTENT - OVDE*/
                         Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
@@ -137,8 +136,7 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                     else
                     {
-                        Toast.makeText(ProfileActivity.this, getString(R.string.something_went_wrong, task.getException()), Toast.LENGTH_LONG);
-                        Log.d("ProfileActivity", "onCancelled() called, error: " + task.getException());
+                        Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                     }
 
                 }
@@ -262,7 +260,7 @@ public class ProfileActivity extends AppCompatActivity {
                                                     @Override
                                                     public void onCancelled(@NonNull DatabaseError error) {
 
-                                                        Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                                        Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                                                     }
                                                 });
                                             }
@@ -272,7 +270,7 @@ public class ProfileActivity extends AppCompatActivity {
                                 }
                                 else
                                 {
-                                    Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_remove_photo, task.getException()), Toast.LENGTH_LONG);
+                                    Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                                 }
                             }
                         });
@@ -338,7 +336,6 @@ public class ProfileActivity extends AppCompatActivity {
 
         pB.setVisibility(View.VISIBLE);
 
-        /**PRVO TREBA PROVERITI DA LI USER IMA SLIKU U STORAGEU*/
 
         if(serverFileUri == null)
         {
@@ -403,7 +400,7 @@ public class ProfileActivity extends AppCompatActivity {
                                                                 @Override
                                                                 public void onCancelled(@NonNull DatabaseError error) {
 
-                                                                    Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                                                    Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                                                                 }
                                                             });
                                                         }
@@ -415,7 +412,7 @@ public class ProfileActivity extends AppCompatActivity {
                                             }
                                             else
                                             {
-                                                Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
+                                                Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                                             }
                                         }
                                     });
@@ -494,7 +491,7 @@ public class ProfileActivity extends AppCompatActivity {
                                                                             @Override
                                                                             public void onCancelled(@NonNull DatabaseError error) {
 
-                                                                                Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                                                                Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                                                                             }
                                                                         });
                                                                     }
@@ -505,7 +502,7 @@ public class ProfileActivity extends AppCompatActivity {
 
 
                                                         } else {
-                                                            Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
+                                                            Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                                                         }
                                                     }
                                                 });
@@ -520,7 +517,7 @@ public class ProfileActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(@NonNull Exception e) {
 
-                        Toast.makeText(ProfileActivity.this, R.string.failed_to_delete_old_image, Toast.LENGTH_LONG).show();
+                        Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG).show();
                     }
                 });
         }
@@ -582,7 +579,7 @@ public class ProfileActivity extends AppCompatActivity {
                                     @Override
                                     public void onCancelled(@NonNull DatabaseError error) {
 
-                                        Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_notify_friends, task.getException()), Toast.LENGTH_LONG);
+                                        Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                                     }
                                 });
                             }
@@ -593,7 +590,7 @@ public class ProfileActivity extends AppCompatActivity {
                 }
                 else
                 {
-                    Toast.makeText(ProfileActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
+                    Toast.makeText(ProfileActivity.this, R.string.exception, Toast.LENGTH_LONG);
                 }
             }
         });
@@ -602,7 +599,6 @@ public class ProfileActivity extends AppCompatActivity {
 
     public void btnChangePasswordClick(View view)
     {
-           /**INTENT - OVDE*/
           startActivity(new Intent(ProfileActivity.this, ChangePasswordActivity.class));
     }
 
@@ -621,7 +617,5 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("ProfileActivity", "onDestroy() called");
-
     }
 }

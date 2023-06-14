@@ -71,7 +71,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         String[] splitString = dateTime.split(" ");
         String messageTime = splitString[1];
 
-        /**PROVERA DA LI JE PORUKA POSLATA ILI PRIMLJENA*/
         if (fromUserId.equals(currentUserId)) {
             if (message.getMessageType().equals(Constants.MESSAGE_TYPE_TEXT)) {
                 holder.llSent.setVisibility(View.VISIBLE);
@@ -244,7 +243,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
 
 
-            Log.d("MyActivity", "onCreateActionMode - actionMode: " + actionMode);
             MenuInflater inflater = actionMode.getMenuInflater();
             inflater.inflate(R.menu.menu_chat_options, menu);
 

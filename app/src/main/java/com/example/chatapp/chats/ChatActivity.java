@@ -114,7 +114,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                  startActivity(new Intent(this, NetworkError.class));
 
 
-        /**POSTAVLJANJE ACTION BARA*/
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null)
         {
@@ -144,8 +143,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         currentUserId = firebaseAuth.getCurrentUser().getUid();
         rootRef = FirebaseDatabase.getInstance().getReference();
 
-
-        /**NABAVLJANJE PODATAKA O KORISNIKU IZ PRETHODNE AKTIVNOSTI*/
         if(getIntent().hasExtra(Extras.USER_KEY))
         {
             chatUserId = getIntent().getStringExtra(Extras.USER_KEY);
@@ -168,8 +165,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         dbRefChatsUser = rootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId);
         dbRefChatsChat = rootRef.child(NodeNames.CHATS).child(chatUserId).child(currentUserId);
 
-
-        /**POSTAVLJANJE IMENA USERA I SLIKE AKO JE IMA*/
         tvUserName.setText(userName);
         if(!TextUtils.isEmpty(photoName))
         {
@@ -203,7 +198,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
         rvMessages.scrollToPosition(messageList.size() - 1);
 
-        /**ATTACHMENT OPCIJE - BOTTOM DIALOG*/
         bottomSheetDialog = new BottomSheetDialog(this);
         View view = getLayoutInflater().inflate(R.layout.chat_file_options, null);
         view.findViewById(R.id.llCamera).setOnClickListener(this);
@@ -213,10 +207,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         bottomSheetDialog.setContentView(view);
 
 
-        /**PROVERA DA LI SE RADI O FORWARD PORUCI*/
         if(getIntent().hasExtra(Extras.MESSAGE) && getIntent().hasExtra(Extras.MESSAGE_ID) && getIntent().hasExtra(Extras.MESSAGE_TYPE))
         {
-            Log.d("ChatActivity", "Forwarding the message");
             String message = getIntent().getStringExtra(Extras.MESSAGE);
             String messageId = getIntent().getStringExtra(Extras.MESSAGE_ID);
             String messageType = getIntent().getStringExtra(Extras.MESSAGE_TYPE);
@@ -265,14 +257,13 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.d("GRESKA", e.getMessage());
+
                     }
                 });
             }
         }
 
 
-        /**SETOVANJE ONLINE/OFFLINE STATUSA*/
         dbRefTokens = rootRef.child(NodeNames.TOKEN).child(chatUserId);
         dbRefTokens.addValueEventListener(new ValueEventListener() {
             @Override
@@ -297,12 +288,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                 Toast.makeText(ChatActivity.this, getString(R.string.something_went_wrong,error.getMessage()), Toast.LENGTH_SHORT).show();
+                 Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
             }
         });
 
 
-        /**SETOVANJE TYPING STATUSA*/
         etMessage.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -327,7 +317,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
 
-                /**OVDE SE MOZE AZURIRATI SLIKA USERA*/
                 dbRefChatsChat.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -354,8 +343,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
         Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_MESSAGEID);
 
-
-        Log.d("ChatActivity", "onCreate() called, chatUserID: " + chatUserId);
 
     }
 
@@ -390,7 +377,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
                                     if(task.isSuccessful())
                                     {
-                                        Toast.makeText(ChatActivity.this,R.string.message_sent_successfully, Toast.LENGTH_LONG).show();
+                                        //Toast.makeText(ChatActivity.this,R.string.message_sent_successfully, Toast.LENGTH_LONG).show();
 
                                         String title="";
 
@@ -402,12 +389,12 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                                             title = "New Video";
 
                                         Util.sendNotification(ChatActivity.this, title, msg, chatUserId, currentUserId, Constants.NOTIFICATION_TYPE_MESSAGE);
-                                        String lastMessage = !title.equals("New Message") ? title : msg;
+                                        String lastMessage = (!title.equals("New Message")) ? title : msg;
                                         Util.updateChatDetails(ChatActivity.this, currentUserId, chatUserId,lastMessage, msgType);
                                     }
                                     else
                                     {
-                                        Toast.makeText(ChatActivity.this, getString(R.string.failed_to_send_message, task.getException()), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_LONG).show();
                                     }
 
                                 }
@@ -415,7 +402,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                         }
                         else
                         {
-                            Toast.makeText(ChatActivity.this, getString(R.string.failed_to_send_message, task.getException()), Toast.LENGTH_LONG).show();
+                            Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_LONG).show();
                         }
 
 
@@ -425,7 +412,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
         } catch (Exception ex){
 
-            Toast.makeText(ChatActivity.this, getString(R.string.failed_to_send_message, ex.getMessage()), Toast.LENGTH_LONG).show();
+            Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_LONG).show();
 
         }
     }
@@ -452,7 +439,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 int indexOfMessage = messageIds.indexOf(messageId);
                 adapter.notifyItemInserted(indexOfMessage);
                 rvMessages.scrollToPosition(messageList.size()-1);
-                Log.d("ChatActivity", "onChildAdded() called: " + messageId + "  ,indexOfMessage: " + indexOfMessage);
             }
 
             @Override
@@ -464,7 +450,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                    messageList.set(indexOfMessage,message);
                    adapter.notifyItemChanged(indexOfMessage);
                    rvMessages.scrollToPosition(messageList.size()-1);
-                   Log.d("ChatActivity", "onChildChanged() called: " + messageId);
             }
 
             @Override
@@ -476,7 +461,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                    messageList.remove(indexOfMessage);
                    adapter.notifyItemRemoved(indexOfMessage);
                    rvMessages.scrollToPosition(messageList.size()-1);
-                   Log.d("ChatActivity", "onChildRemoved() called");
             }
 
             @Override
@@ -525,7 +509,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
                 }
 
-                // hidding keyboard
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                 if(inputMethodManager != null)
                     inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
@@ -588,7 +571,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
                 else if(requestCode == REQUEST_CODE_FORWARD_MESSAGE)
                 {
-                    /**INTENT - OVDE*/
+
                     Intent intent = new Intent(this, ChatActivity.class);
                     intent.putExtra(Extras.USER_KEY, data.getStringExtra(Extras.USER_KEY));
                     intent.putExtra(Extras.USER_NAME, data.getStringExtra(Extras.USER_NAME));
@@ -711,7 +694,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             public void onFailure(@NonNull Exception e) {
 
                 llProgress.removeView(view);
-                Toast.makeText(ChatActivity.this, getString(R.string.failed_to_upload, e.getMessage()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -762,9 +745,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
                             if(task.isSuccessful())
                             {
-
-                                /**PROVERA DA LI JE OBRISANA POSLEDNJA POSLATA PORUKA*/
-                                Log.d("ChatActivity", "deleteMessage() - messagePosition: " + messagePosition + "  messageList.size() - 1: " + (messageList.size()-1));
                                 if((messageList.size()-1) == messagePosition)
                                 {
                                     String lastMessage = Constants.DELETED_MESSAGE_TEXT;
@@ -773,7 +753,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                                 }
 
 
-                                Toast.makeText(ChatActivity.this, R.string.message_deleted_successfully, Toast.LENGTH_SHORT).show();
+                               // Toast.makeText(ChatActivity.this, R.string.message_deleted_successfully, Toast.LENGTH_SHORT).show();
                                 if(!messageType.equals(Constants.MESSAGE_TYPE_TEXT))
                                 {
                                     StorageReference rootRef = FirebaseStorage.getInstance().getReference();
@@ -786,19 +766,19 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                                         public void onComplete(@NonNull Task<Void> task) {
 
                                             if(!task.isSuccessful())
-                                                Toast.makeText(ChatActivity.this, getString(R.string.failed_to_delete_file, task.getException()), Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                 }
                             }
                             else
-                                Toast.makeText(ChatActivity.this, getString(R.string.failed_to_delete_message, task.getException()), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
                 else
                 {
-                    Toast.makeText(ChatActivity.this, getString(R.string.failed_to_delete_message, task.getException()), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -815,7 +795,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
                 if(!task.isSuccessful())
                 {
-                    Toast.makeText(ChatActivity.this, getString(R.string.failed_to_clear_message, task.getException()), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -943,7 +923,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                         public void onFailure(@NonNull Exception e) {
 
                             llProgress.removeView(view);
-                            Toast.makeText(ChatActivity.this, getString(R.string.failed_to_download, e.getMessage()), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
 
                         }
                     });
@@ -951,12 +931,12 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
                 }else
                 {
-                    Toast.makeText(this, R.string.failed_to_store_file, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.exception, Toast.LENGTH_SHORT).show();
                 }
 
             }catch (Exception ex)
             {
-                Toast.makeText(ChatActivity.this, getString(R.string.failed_to_download, ex.getMessage()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ChatActivity.this, R.string.exception, Toast.LENGTH_SHORT).show();
             }
 
         } else {
@@ -972,7 +952,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     public void forwardMessage(String selectedMessageId, String selectedMessage, String selectedMessageType, String chatUserId) {
 
-        /**INTENT - OVDE*/
         Intent intent = new Intent(this, SelectFriendActivity.class);
         intent.putExtra(Extras.MESSAGE, selectedMessage);
         intent.putExtra(Extras.MESSAGE_ID, selectedMessageId);
@@ -996,13 +975,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d("ChatActivity:", "onStart() called, chatUserID: " + chatUserId);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("ChatActivity:", "onResume() called");
         isResumed = true;
         Util.cancelNotifications(this, Constants.NOTIFICATION_TYPE_MESSAGEID);
     }
@@ -1011,19 +988,16 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     protected void onPause() {
         isResumed = false;
         super.onPause();
-        Log.d("ChatActivity:", "onPause() called");
     }
 
     @Override
     protected void onStop() {
         rootRef.child(NodeNames.CHATS).child(currentUserId).child(chatUserId).child(NodeNames.UNREAD_COUNT).setValue(0);
-        Log.d("ChatActivity:", "onStop() called");
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        Log.d("ChatActivity:", "onDestroy() called, chatUserID: " + chatUserId);
         messageQuery.removeEventListener(childEventListener);
         super.onDestroy();
     }

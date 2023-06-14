@@ -76,7 +76,6 @@ public class SignupActivity extends AppCompatActivity {
 
     }
 
-    /**GRANTING PERMISSION AND PICKING PROFILE IMAGE*/
     public void pickImage(View v)
     {
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
@@ -122,10 +121,7 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
-
-
-    /**SINGING USER WITH OR WITHOUT PROFILE IMAGE*/
-    public void updateNameAndPhoto()
+    public void signupWithPhoto()
     {
         String strFileName = currentUser.getUid() + ".jpg";
 
@@ -155,7 +151,6 @@ public class SignupActivity extends AppCompatActivity {
                                     if(task.isSuccessful())
                                     {
                                         String userID = currentUser.getUid();
-                                        //dbRefUsers = FirebaseDatabase.getInstance().getReference().child("Users");
 
                                         HashMap<String,String> hashMap = new HashMap<>();
                                         hashMap.put(NodeNames.NAME, etName.getText().toString().trim());
@@ -165,8 +160,7 @@ public class SignupActivity extends AppCompatActivity {
                                         dbRefUsers.child(userID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
-                                                Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
-                                                /**INTENT - OVDE*/
+                                               // Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
                                                 startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                                             }
                                         });
@@ -174,7 +168,7 @@ public class SignupActivity extends AppCompatActivity {
                                     }
                                     else
                                     {
-                                        Toast.makeText(SignupActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
+                                        Toast.makeText(SignupActivity.this, R.string.exception, Toast.LENGTH_LONG);
                                     }
                                 }
                             });
@@ -185,7 +179,7 @@ public class SignupActivity extends AppCompatActivity {
         });
 
     }
-     public void updateOnlyName()
+     public void signupWithoutPhoto()
     {
 
         pB.setVisibility(View.VISIBLE);
@@ -219,8 +213,7 @@ public class SignupActivity extends AppCompatActivity {
 
                             if(task.isSuccessful())
                             {
-                                Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
-                                /**INTENT - OVDE*/
+                                //Toast.makeText(SignupActivity.this, R.string.user_created_successfully, Toast.LENGTH_LONG).show();
                                 startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                             }
                         }
@@ -229,16 +222,12 @@ public class SignupActivity extends AppCompatActivity {
                 }
                 else
                 {
-                    Toast.makeText(SignupActivity.this, getString(R.string.failed_to_update_profile, task.getException()), Toast.LENGTH_LONG);
-                    Log.d("SignupFailed: ","Signup failed: " + task.getException());
+                    Toast.makeText(SignupActivity.this, R.string.exception, Toast.LENGTH_LONG);
                 }
             }
         });
     }
 
-
-
-    /**POTREBNA PROVERA DA LI IMA KONEKCIJE SA MREZOM*/
     public void btnSignupClick(View v) {
 
         email = etEmail.getText().toString().trim();
@@ -276,14 +265,13 @@ public class SignupActivity extends AppCompatActivity {
                         {
                             currentUser = firebaseAuth.getCurrentUser();
                             if (localFileUri != null)
-                                updateNameAndPhoto();
+                                signupWithPhoto();
                             else
-                                updateOnlyName();
+                                signupWithoutPhoto();
                         }
                         else
                         {
-                            Toast.makeText(SignupActivity.this, getString(R.string.signup_failed, task.getException()), Toast.LENGTH_LONG).show();
-                            Log.d("SignupFailed2: ","Signup failed: " + task.getException());
+                            Toast.makeText(SignupActivity.this, R.string.exception, Toast.LENGTH_LONG).show();
                         }
                     }
                 });

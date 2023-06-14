@@ -155,7 +155,6 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
         FrameLayout container = viewHolder.itemView.findViewById(R.id.flSwipeAction);
         if (container.getChildCount() == 1) {
             container.addView(newView);
-            Log.d("SwipeCallback", "VIEW ADDED");
         }
 
 
@@ -164,13 +163,6 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
         newLayout.setTranslationX(dX - threshold);
         oldLayout.setTranslationX(-dX);
 
-        Log.d("SwipeCallback", "onChildDraw() called, swipeFraction = " + swipeFraction);
-        Log.d("SwipeCallback", "onChildDraw() called, threshold = " + threshold);
-        Log.d("SwipeCallback", "onChildDraw() called, dX = " + dX);
-
-
-
-
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
 
@@ -178,11 +170,8 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
    public void onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
                                 float dX, float dY, int actionState, boolean isCurrentlyActive) {
 
-        // get the swipe fraction
         float swipeFraction = Math.min(Math.abs(dX) / viewHolder.itemView.getWidth(), 1f);
 
-
-        // get references to the old and new layouts
         View newLayout = viewHolder.itemView.findViewById(R.id.llDeleteFriend);
         View oldLayout = viewHolder.itemView.findViewById(R.id.llChatList);
 
@@ -190,8 +179,6 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
         oldLayout.setAlpha(1-swipeFraction);
         newLayout.setAlpha(swipeFraction);
 
-
-        //Log.d("SwipeCallback", "onChildDrawOver() called");
         super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
 
@@ -206,14 +193,13 @@ public class SwipeCallback extends ItemTouchHelper.Callback {
         newLayout.setAlpha(0);
         oldLayout.setTranslationX(0);
 
-      // Log.d("SwipeCallback", "clearView() called");
         super.clearView(recyclerView, viewHolder);
 
     }
 
     private void handleException(RecyclerView.ViewHolder viewHolder, Exception exception) {
 
-        Toast.makeText(viewHolder.itemView.getContext(), viewHolder.itemView.getContext().getString(R.string.failed_to_delete_friend, exception), Toast.LENGTH_SHORT).show();
+        Toast.makeText(viewHolder.itemView.getContext(), R.string.exception, Toast.LENGTH_SHORT).show();
 
     }
 

@@ -46,7 +46,6 @@ public class FindFriendsFragment extends Fragment {
     private  List<FindFriendsModel> findFriendsModelList;
     private  FirebaseUser currentUser;
     private ChildEventListener childEventListener, childEventListener2;
-    private static int flag;
 
     public FindFriendsFragment() {
         // Required empty public constructor
@@ -86,24 +85,19 @@ public class FindFriendsFragment extends Fragment {
 
         findFriendsModelList.clear();
         userIds.clear();
-        flag = 0;
+
 
         childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                if(++flag==1)tvEmptyFriendsList.setVisibility(View.GONE);
-
                 updateRequestStatus(snapshot.getKey(),snapshot,0);
-                Log.d("FindFriendsFragment", "dbRefUsers.onChildAdded() called");
-
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
                 updateRequestStatus(snapshot.getKey(),snapshot,1);
-                Log.d("FindFriendsFragment", "dbRefUsers.onChildChanged() called");
             }
 
             @Override
@@ -118,7 +112,7 @@ public class FindFriendsFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), getContext().getString(R.string.failed_to_fetch_friends, error.getMessage()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), R.string.exception, Toast.LENGTH_SHORT).show();
             }
         };
 
@@ -126,20 +120,18 @@ public class FindFriendsFragment extends Fragment {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                        Log.d("FindFriendsFragment", "dbRefFriendRequests.onChildAdded() called");
                         updateRequestStatus(snapshot.getKey(),snapshot,2);
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                        Log.d("FindFriendsFragment", "dbRefFriendRequests.onChildChanged() called");
+
                         updateRequestStatus(snapshot.getKey(),snapshot,2);
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
-                         Log.d("FindFriendsFragment", "dbRefFriendRequests.onChildRemoved() called");
                          updateRequestStatus(snapshot.getKey(),snapshot,2);
             }
 
@@ -152,8 +144,7 @@ public class FindFriendsFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {
 
                 pB.setVisibility(View.GONE);
-                Toast.makeText(getContext(), getContext().getString(R.string.failed_to_fetch_friends, error.getMessage()), Toast.LENGTH_SHORT).show();
-                Log.d("FindFriendsFragment", "onCancelled() called, error: " + error.getMessage());
+                Toast.makeText(getContext(), R.string.exception, Toast.LENGTH_SHORT).show();
 
             }
         };
@@ -166,7 +157,6 @@ public class FindFriendsFragment extends Fragment {
 
     @Override
     public void onStart() {
-        Log.d("FindFriendsFragment", "onStart() called");
         super.onStart();
     }
 
@@ -181,19 +171,15 @@ public class FindFriendsFragment extends Fragment {
         }
         else startActivity(new Intent(requireContext(), NetworkError.class));
 
-
-        Log.d("FindFriendsFragment", "onResume() called");
     }
 
     @Override
     public void onPause() {
-        Log.d("FindFriendsFragment", "onPause() called");
         super.onPause();
     }
 
     @Override
     public void onStop() {
-        Log.d("FindFriendsFragment", "onStop() called");
         super.onStop();
     }
 
@@ -212,16 +198,15 @@ public class FindFriendsFragment extends Fragment {
 
                 switch(flag)
                 {
-                    /**USER ADDED - CALLED ON START OF APPLICATION AND ON ADDING USERS WITH TYPE OF REQUEST TO USERS (SENT AND NONE)*/
                     case 0 :
                         if(snapshot.exists())
                         {
                             String requestType = snapshot.child(NodeNames.REQUEST_TYPE).getValue().toString();
                             if (requestType.equals(Constants.REQUEST_STATUS_SENT))
                             {
-
                                 if (!userId.equals(currentUser.getUid()))
                                 {
+                                    tvEmptyFriendsList.setVisibility(View.GONE);
 
                                     FindFriendsModel friend = new FindFriendsModel(userName, photoName, userId, true);
                                     userIds.add(userId);
@@ -235,6 +220,8 @@ public class FindFriendsFragment extends Fragment {
                         {
                             if (!userId.equals(currentUser.getUid()))
                             {
+                                tvEmptyFriendsList.setVisibility(View.GONE);
+
                                 FindFriendsModel friend = new FindFriendsModel(userName, photoName, userId, false);
                                 userIds.add(userId);
                                 findFriendsModelList.add(friend);
@@ -243,7 +230,6 @@ public class FindFriendsFragment extends Fragment {
                             }
                         } break;
 
-                    /**USER CHANGED - CALLED ON WHEN USERES ARE CHANGING THEIR PROFILE (IMAGE OR NAME)*/
                     case 1 :
                         if(snapshot.exists())
                         {
@@ -265,11 +251,9 @@ public class FindFriendsFragment extends Fragment {
 
                                 int indexOfUser = userIds.indexOf(userId);
                                 adapter.notifyItemChanged(indexOfUser);
-                                Log.d("FindFriendsFragment", "USER CHANGED , USERID_INDEX: " + indexOfUser);
                             }
                         } break;
 
-                    /**REQUEST STATUS CHANGED - CALLED WHEN REQUEST STATUS IS CHANGING*/
                     case 2 :
                         if(snapshot.exists())
                         {
@@ -280,8 +264,9 @@ public class FindFriendsFragment extends Fragment {
                                 int indexOfUser = userIds.indexOf(userId);
                                 findFriendsModelList.remove(indexOfUser);
                                 userIds.remove(userId);
+                                if(userIds.size() > 0) tvEmptyFriendsList.setVisibility(View.GONE);
+                                else tvEmptyFriendsList.setVisibility(View.VISIBLE);
                                 adapter.notifyItemRemoved(indexOfUser);
-                                Log.d("REQUEST_STATUS_RECEIVED","USERID_INDEX: " + indexOfUser);
                             }
 
                             else if(requestType.equals(Constants.REQUEST_STATUS_ACCEPTED) && userIds.contains(userId))
@@ -289,14 +274,14 @@ public class FindFriendsFragment extends Fragment {
                                 int indexOfUser = userIds.indexOf(userId);
                                 findFriendsModelList.remove(indexOfUser);
                                 userIds.remove(userId);
+                                if(userIds.size() > 0) tvEmptyFriendsList.setVisibility(View.GONE);
+                                else tvEmptyFriendsList.setVisibility(View.VISIBLE);
                                 adapter.notifyItemRemoved(indexOfUser);
-                                Log.d("REQUEST_STATUS_ACCEPTED", "USERID_INDEX: " + indexOfUser);
                             }
                         }
                         else
                         {
-                            /**KORISNIK KOJI JE PRIMIO ZAHTEV BIVA KANSELOVAN,
-                             * KORISNIK KOJI JE PRIMIO ZAHTEV, ODBIJA ZAHTEV*/
+
                             if(!userIds.contains(userId))
                             {
                                 dbRefUsers.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -307,29 +292,26 @@ public class FindFriendsFragment extends Fragment {
                                         String photoName = (snapshot.child(NodeNames.PHOTO).getValue()) != null ? userId + ".jpg" : "";
 
                                         FindFriendsModel friend = new FindFriendsModel(userName, photoName, userId, false);
+                                        tvEmptyFriendsList.setVisibility(View.GONE);
                                         userIds.add(userId);
                                         findFriendsModelList.add(friend);
                                         int indexOfUser = userIds.indexOf(userId);
                                         adapter.notifyItemInserted(indexOfUser);
-                                        Log.d("REQUEST_STATUS_CANCELED BY OTHER USER OR REJECTED BY YOU", "USERID_INDEX: " + indexOfUser);
                                     }
 
                                     @Override
                                     public void onCancelled(@NonNull DatabaseError error) {
 
-                                        Toast.makeText(getContext(), getString(R.string.failed_to_fetch_friends, error.getMessage()), Toast.LENGTH_SHORT).show();
-                                        Log.d("FindFriendsFragment", "onCancelled() called, error: " + error.getMessage());
+                                        Toast.makeText(getContext(), R.string.exception, Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             }
                             else
                             {
-                                /**KORISNIK KOJI KANCELUJE
-                                 * KORISNIK CIJI JE ZAHTEV ODBIJEN*/
                                 int indexOfUser = userIds.indexOf(userId);
                                 findFriendsModelList.get(indexOfUser).setRequestSent(false);
                                 adapter.notifyItemChanged(indexOfUser);
-                                Log.d("REQUEST_STATUS_CANCELED BY YOU OR REJECTED BY OTHER USER", "USERID_INDEX: " + indexOfUser);
+                                tvEmptyFriendsList.setVisibility(View.GONE);
                             }
                         } break;
                 }

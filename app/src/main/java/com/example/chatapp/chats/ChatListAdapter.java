@@ -80,28 +80,22 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                             .placeholder(R.drawable.default_profile)
                             .error(R.drawable.default_profile)
                             .into(holder.ivProfile);
-                    Log.d("ChatFragment - ChatListAdapter","profile image download FAILED");
                 }
 
             }
         });
 
-        /**OBRADI GRESKU UCITAVANJA SLIKE*/
 
-
-        /**LAST MESSAGE*/
         String lastMessage = chatListModel.getLastMessage();
         lastMessage = lastMessage.length() > 30 ? lastMessage.substring(0, 27) + "..." : lastMessage;
         holder.tvLastMessage.setText(lastMessage);
 
-        /**LAST MESSAGE TIME*/
         String lastMessageTime = chatListModel.getLastMessageTime();
         if(lastMessageTime == null) lastMessageTime = "";
 
         if(!TextUtils.isEmpty(lastMessageTime))
-            holder.tvLastMessageTime.setText(Util.getTimeAgo(Long.parseLong(lastMessageTime)));
+            holder.tvLastMessageTime.setText(Util.getTimeAgo(context,Long.parseLong(lastMessageTime)));
 
-        /**UNREAD COUNT*/
         if(!chatListModel.getUnreadCount().equals("0"))
         {
             holder.tvUnreadCount.setVisibility(View.VISIBLE);
@@ -114,7 +108,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             @Override
             public void onClick(View view) {
 
-                /**INTENT - OVDE*/
                 Intent intent = new Intent(context, ChatActivity.class);
                 intent.putExtra(Extras.USER_KEY, chatListModel.getUserId());
                 intent.putExtra(Extras.USER_NAME, chatListModel.getUserName());

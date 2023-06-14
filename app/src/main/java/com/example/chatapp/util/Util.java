@@ -4,6 +4,8 @@ import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.service.notification.StatusBarNotification;
@@ -43,7 +45,6 @@ import java.util.Map;
 public class Util {
 
 
-
     public static boolean connectionAvailable(Context context)
     {
         ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -55,13 +56,11 @@ public class Util {
 
     }
 
-    /**getApplicationContext() should be passed*/
     public static void updateDeviceToken(Context context, String token)
     {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
 
-        Log.d("Util", "updateDeviceToken() called");
 
         if(currentUser != null)
         {
@@ -76,26 +75,22 @@ public class Util {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
 
-                    Log.d("Util", "updateDeviceToken() called");
                     if (!task.isSuccessful())
                     {
-                        Toast.makeText(context, context.getString(R.string.failed_to_save_device_token, task.getException()), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
                     }
 
                 }
             });
 
-            Log.d("TEST", "updateDeviceToken() called");
         }
 
     }
 
 
-    /**getApplicationContext() should be passed*/
     public static void sendNotification(Context context, String title, String message, String chatUserId, String userId, String notificationType)
     {
 
-        Log.d("Util", "sendNotification() called ");
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference dbRefToken = rootRef.child(NodeNames.TOKEN).child(chatUserId);
@@ -105,11 +100,9 @@ public class Util {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                /**KADA NEMA DEVICE TOKENA NEMA SLANJA NOTIFIKACIJE*/
                 if(snapshot.child(NodeNames.DEVICE_TOKEN).getValue() != null)
                 {
 
-                    Log.d("Util", "sendNotification() called 2");
                     String deviceToken = snapshot.child(NodeNames.DEVICE_TOKEN).getValue().toString();
 
                     JSONObject notification = new JSONObject();
@@ -134,8 +127,7 @@ public class Util {
                                     @Override
                                     public void onResponse(JSONObject response) {
 
-                                        Log.d("Util", "sendNotification() called 3");
-                                        Toast.makeText(context, "Notification Sent", Toast.LENGTH_SHORT).show();
+                                       // Toast.makeText(context, R.string.notification_sent, Toast.LENGTH_SHORT).show();
 
                                     }
                                 }, new Response.ErrorListener() {
@@ -143,7 +135,7 @@ public class Util {
                                     @Override
                                     public void onErrorResponse(VolleyError error) {
 
-                                        Toast.makeText(context, context.getString(R.string.failed_to_send_notification, error.getMessage()), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
 
                                     }
                                 }){
@@ -167,7 +159,7 @@ public class Util {
 
                     } catch (JSONException e) {
 
-                        Toast.makeText(context, context.getString(R.string.failed_to_send_notification, e.getMessage()), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
                     }
 
                 }
@@ -177,14 +169,13 @@ public class Util {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-                Toast.makeText(context, context.getString(R.string.failed_to_send_notification, error.getMessage()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
 
             }
         });
     }
 
 
-    /**getApplicationContext() should be passed*/
     public static void updateChatDetails(Context context, String currentUserId, String chatUserId, String lastMessage, String messageType)
     {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
@@ -203,7 +194,6 @@ public class Util {
                 chatMap.put(NodeNames.LAST_MESSAGE, lastMessage);
                 chatMap.put(NodeNames.LAST_MESSAGE_TIME, ServerValue.TIMESTAMP);
 
-                /**PROVERA DA LI JE TIP PORUKE DELETED*/
                 if(messageType.equals(Constants.MESSAGE_TYPE_DELETED))
                     chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount));
                 else chatMap.put(NodeNames.UNREAD_COUNT, Integer.valueOf(currentCount)+1);
@@ -214,7 +204,7 @@ public class Util {
                     public void onComplete(@NonNull Task task) {
                         if(!task.isSuccessful())
                         {
-                            Toast.makeText(context, context.getString(R.string.something_went_wrong, task.getException()), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -224,7 +214,7 @@ public class Util {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-                Toast.makeText(context, context.getString(R.string.something_went_wrong, error.getMessage()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -233,27 +223,30 @@ public class Util {
     }
 
 
-    public static String getTimeAgo(long time)
+    public static String getTimeAgo(Context ctx, long time)
     {
+
+        String currentLanguage = getCurrentLanguage(ctx);
+        String res = "";
+
         final int SECOND_MILLIS = 1000;
         final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
         final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
         final int DAY_MILLIS = 24 * HOUR_MILLIS;
-
-        //time *= 1000;
 
         long now = System.currentTimeMillis();
         if(time > now || time <= 0) return "";
 
         final long diff = now - time;
 
-       if(diff < MINUTE_MILLIS) return "just now";
-       else if(diff < 2 * MINUTE_MILLIS) return "minute ago";
-       else if (diff < 59 * MINUTE_MILLIS) return diff/MINUTE_MILLIS + " minutes ago";
-       else if (diff < 90 * MINUTE_MILLIS) return "an hour ago";
-       else if (diff < 24 * HOUR_MILLIS) return diff/HOUR_MILLIS + " hours ago";
-       else if (diff < 48 * HOUR_MILLIS) return "yesterday";
-       else return diff/DAY_MILLIS + " days ago";
+       if(diff < MINUTE_MILLIS) return res = (currentLanguage.equals("sr"))?"upravo sada":"just now";
+
+       else if(diff < 2 * MINUTE_MILLIS) return res = (currentLanguage.equals("sr"))?"pre minut":"minute ago";
+       else if (diff < 59 * MINUTE_MILLIS) return res = (currentLanguage.equals("sr"))?"pre " + diff/MINUTE_MILLIS + " minuta":diff/MINUTE_MILLIS + " minutes ago";
+       else if (diff < 90 * MINUTE_MILLIS) return res = (currentLanguage.equals("sr"))?"pre sat vremena":"an hour ago";
+       else if (diff < 24 * HOUR_MILLIS) return res = (currentLanguage.equals("sr"))?"pre " + diff/HOUR_MILLIS + " sati":diff/HOUR_MILLIS + "hours ago";
+       else if (diff < 48 * HOUR_MILLIS) return res = (currentLanguage.equals("sr"))?"juče":"yesterday";
+       else return res = (currentLanguage.equals("sr"))?"pre " + diff/DAY_MILLIS + " dana":diff/DAY_MILLIS + "days ago";
 
 
     }
@@ -288,6 +281,14 @@ public class Util {
         }
 
         return false;
+    }
+
+    public static String getCurrentLanguage(Context ctx)
+    {
+        Resources resources = ctx.getResources();
+        Configuration config = resources.getConfiguration();
+
+        return config.getLocales().get(0).getLanguage();
     }
 
 

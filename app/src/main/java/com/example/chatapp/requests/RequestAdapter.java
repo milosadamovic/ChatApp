@@ -57,7 +57,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
     public void onBindViewHolder(@NonNull RequestAdapter.RequestViewHolder holder, int position) {
 
 
-        Log.d("RequestFragment - Adapter", "Hello from Request Adapter");
 
         RequestModel requestModel = requestModelList.get(position);
 
@@ -66,8 +65,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
         StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://chatapp-ca8cb.appspot.com");
         StorageReference mountRef = storageRef.child(Constants.IMAGES_FOLDER + "/" + requestModel.getPhotoName());
 
-
-        /**AKO TI STIGNE ZAHTE OD KORISNIKA SA PROFILNOM SLIKOM PA BEZ PROFILNE, PA SE DESI TRIGGER, DA LI SE SLIKA PREMESTA ILI NE*/
         mountRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
@@ -189,11 +186,11 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                             holder.btnDenyRequest.setVisibility(View.VISIBLE);
                                             holder.btnAcceptRequest.setVisibility(View.VISIBLE);
                                             Util.cancelNotifications(context, Constants.NOTIFICATION_TYPE_REQUESTID);
-                                            Toast.makeText(context,R.string.request_denied_successfully,Toast.LENGTH_SHORT).show();
+                                            //Toast.makeText(context,R.string.request_denied_successfully,Toast.LENGTH_SHORT).show();
                                         }
                                         else
                                         {
-                                            Toast.makeText(context, context.getString(R.string.failed_to_deny_request, task.getException()), Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
                                             holder.pbDecision.setVisibility(View.GONE);
                                             holder.btnDenyRequest.setVisibility(View.VISIBLE);
                                             holder.btnAcceptRequest.setVisibility(View.VISIBLE);
@@ -203,7 +200,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                             }
                             else
                             {
-                                Toast.makeText(context, context.getString(R.string.failed_to_deny_request, task.getException()), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
                                 holder.pbDecision.setVisibility(View.GONE);
                                 holder.btnDenyRequest.setVisibility(View.VISIBLE);
                                 holder.btnAcceptRequest.setVisibility(View.VISIBLE);
@@ -223,7 +220,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
     private void handleException(RequestViewHolder holder, Exception exception) {
 
-        Toast.makeText(context, context.getString(R.string.failed_to_accept_request, exception), Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
         holder.pbDecision.setVisibility(View.GONE);
         holder.btnDenyRequest.setVisibility(View.VISIBLE);
         holder.btnAcceptRequest.setVisibility(View.VISIBLE);
