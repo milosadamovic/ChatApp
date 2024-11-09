@@ -27,7 +27,7 @@
         android:layout_marginEnd="8dp"
         android:text="@string/chat"
         android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:textSize="14dp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/imageView2"

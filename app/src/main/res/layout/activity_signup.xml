@@ -53,6 +53,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/enter_name"
                     android:textColorHint="#757575"
+                    android:textSize="16dp"
                     tools:ignore="TextContrastCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -68,6 +69,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/enter_email"
                     android:textColorHint="#757575"
+                    android:textSize="16dp"
                     tools:ignore="TextContrastCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -84,6 +86,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/enter_password"
                     android:textColorHint="#757575"
+                    android:textSize="16dp"
                     tools:ignore="TextContrastCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -100,6 +103,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/confirm_password"
                     android:textColorHint="#757575"
+                    android:textSize="16dp"
                     tools:ignore="TextContrastCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -112,7 +116,8 @@
                 android:paddingLeft="32dp"
                 android:paddingRight="32dp"
                 android:text="@string/signup"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:textSize="14dp" />
 
 
         </LinearLayout>

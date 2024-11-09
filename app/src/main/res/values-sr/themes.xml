@@ -14,7 +14,9 @@
         <!-- Customize your theme here. -->
 
         <item name="actionModeBackground">@color/colorPrimaryVariant</item>
+
     </style>
+
 
     <style name="Theme.ChatApp.NoActionBar">
         <item name="windowActionBar">false</item>

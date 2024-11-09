@@ -28,17 +28,18 @@
             android:padding="12dp"
             android:textColor="@color/white"
             android:textColorLink="@color/colorSecondaryVariant4"
+            android:textSize="14dp"
             tools:text="Hello Sir, How are you ?" />
 
         <TextView
             android:id="@+id/tvSentMessageTime"
-            android:textColor="@color/white"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginRight="4dp"
             android:layout_marginEnd="4dp"
-            android:textSize="12sp"
+            android:layout_marginRight="4dp"
+            android:textColor="@color/white"
+            android:textSize="12dp"
             tools:text="09:00" />
     </LinearLayout>
 
@@ -65,13 +66,13 @@
 
         <TextView
             android:id="@+id/tvSentImageTime"
-            android:textColor="@color/white"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:layout_marginRight="4dp"
             android:layout_marginEnd="4dp"
-            android:textSize="12sp"
+            android:layout_marginRight="4dp"
+            android:textColor="@color/white"
+            android:textSize="12dp"
             tools:text="09:00" />
 
     </LinearLayout>
@@ -95,17 +96,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="12dp"
+            android:textSize="14dp"
             android:textStyle="italic"
-            tools:text="@string/deleted_message_text"/>
+            tools:text="@string/deleted_message_text" />
 
         <TextView
             android:id="@+id/tvDeletedSentMessageTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginRight="4dp"
             android:layout_marginEnd="4dp"
-            android:textSize="12sp"
+            android:layout_marginRight="4dp"
+            android:textSize="12dp"
             tools:text="09:00" />
     </LinearLayout>
 
@@ -130,6 +132,7 @@
             android:autoLink="all"
             android:padding="12dp"
             android:textColorLink="@color/colorSecondaryVariant4"
+            android:textSize="14dp"
             tools:text="Hello Sir, How are you ?" />
 
         <TextView
@@ -139,7 +142,7 @@
             android:layout_gravity="bottom"
             android:layout_marginEnd="4dp"
             android:layout_marginRight="4dp"
-            android:textSize="12sp"
+            android:textSize="12dp"
             tools:text="09:00" />
     </LinearLayout>
 
@@ -170,10 +173,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:layout_marginRight="4dp"
             android:layout_marginEnd="4dp"
-            android:textSize="12sp"
-            tools:text="09:00"/>
+            android:layout_marginRight="4dp"
+            android:textSize="12dp"
+            tools:text="09:00" />
 
 
     </LinearLayout>
@@ -197,6 +200,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="12dp"
+            android:textSize="14dp"
             android:textStyle="italic"
             tools:text="@string/deleted_message_text" />
 
@@ -205,9 +209,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginRight="4dp"
             android:layout_marginEnd="4dp"
-            android:textSize="12sp"
+            android:layout_marginRight="4dp"
+            android:textSize="12dp"
             tools:text="09:00" />
     </LinearLayout>
 

@@ -29,12 +29,13 @@
             android:id="@+id/tvFullName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:maxLines="1"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="18dp"
             android:textStyle="bold"
-            tools:text = "Full Name"/>
+            tools:text="Full Name" />
 
     </LinearLayout>
 

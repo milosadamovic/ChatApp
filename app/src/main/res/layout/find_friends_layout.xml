@@ -34,6 +34,7 @@
                 android:layout_height="wrap_content"
                 android:padding="4dp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textSize="18dp"
                 android:textStyle="bold"
                 tools:text="User Name" />
 
@@ -41,7 +42,8 @@
                 android:id="@+id/btnSendRequest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/send_friend_request" />
+                android:text="@string/send_friend_request"
+                android:textSize="14dp" />
 
             <Button
                 android:id="@+id/btnCancelRequest"
@@ -49,6 +51,7 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/colorSecondaryVariant"
                 android:text="@string/cancel_request"
+                android:textSize="14dp"
                 android:visibility="gone"
                 tools:visibility="visible" />
 

@@ -54,6 +54,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/enter_name"
                     android:textColorHint="#757575"
+                    android:textSize="16dp"
                     tools:ignore="TextContrastCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -71,6 +72,7 @@
                     android:hint="@string/your_email"
                     android:inputType="none"
                     android:textColorHint="#757575"
+                    android:textSize="16dp"
                     tools:ignore="TextContrastCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -84,7 +86,8 @@
                 android:paddingLeft="32dp"
                 android:paddingRight="32dp"
                 android:text="@string/save"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:textSize="14dp" />
 
             <TextView
                 android:id="@+id/textView4"
@@ -97,7 +100,8 @@
                 android:paddingBottom="15dp"
                 android:text="@string/change_password"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textColor="@color/colorSecondaryVariant" />
+                android:textColor="@color/colorSecondaryVariant"
+                android:textSize="18dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -112,6 +116,7 @@
         android:onClick="btnLogoutClick"
         android:text="@string/logout"
         android:textColor="@color/white"
+        android:textSize="14dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DIPLOMSKI RAD</string>
+    <string name="app_name">Chat App</string>
     <string name="enter_email">Enter Email</string>
     <string name="enter_password">Enter Password</string>
     <string name="login">Login</string>

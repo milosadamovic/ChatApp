@@ -123,12 +123,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             actionBar.setElevation(0);
             actionBar.setCustomView(actionBarLayout);
             actionBar.setDisplayOptions(actionBar.getDisplayOptions() | ActionBar.DISPLAY_SHOW_CUSTOM);
+
+            ivProfile = findViewById(R.id.ivProfile2);
+            tvUserName = findViewById(R.id.tvUserName);
+            tvUserStatus = findViewById(R.id.tvUserStatus);
         }
-
-
-        ivProfile = findViewById(R.id.ivProfile2);
-        tvUserName = findViewById(R.id.tvUserName);
-        tvUserStatus = findViewById(R.id.tvUserStatus);
 
         ivSend = findViewById(R.id.ivSend);
         ivAttachment = findViewById(R.id.ivAttachment);
@@ -481,11 +480,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
 
-
-        switch (view.getId())
-        {
-            case R.id.ivSend:
-
+            if(view.getId() == R.id.ivSend)
+            {
                 if(Util.connectionAvailable(this))
                 {
                     DatabaseReference userMessagePush = dbRefMessagesUser.push();
@@ -496,47 +492,43 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 {
                     Toast.makeText(this, R.string.no_internet, Toast.LENGTH_LONG).show();
                 }
-                break;
+            }
 
-            case R.id.ivAttachment:
-                if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
-                {
-                    if(bottomSheetDialog != null)
+            else if(view.getId() == R.id.ivAttachment) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    if (bottomSheetDialog != null)
                         bottomSheetDialog.show();
-                }
-                else
-                {
+                } else {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
                 }
 
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                if(inputMethodManager != null)
+                if (inputMethodManager != null)
                     inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
 
-                break;
-
-            case R.id.llCamera:
+            else if( view.getId() == R.id.llCamera) {
                 bottomSheetDialog.dismiss();
                 Intent intentCamera = new Intent(ACTION_IMAGE_CAPTURE);
                 ActivityCompat.startActivityForResult(this, intentCamera, REQUEST_CODE_CAPTURE_IMAGE, null);
-                break;
+            }
 
-            case R.id.llGallery:
+           else if (view.getId() == R.id.llGallery) {
                 bottomSheetDialog.dismiss();
                 Intent intentImage = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 ActivityCompat.startActivityForResult(this, intentImage, REQUEST_CODE_PICK_IMAGE, null);
-                break;
+            }
 
-            case R.id.llVideo:
+            else if (view.getId() == R.id.llVideo) {
                 bottomSheetDialog.dismiss();
                 Intent intentVideo = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
                 ActivityCompat.startActivityForResult(this, intentVideo, REQUEST_CODE_PICK_VIDEO, null);
-                break;
+            }
 
-            case R.id.ivClose:
+            else if (view.getId() == R.id.ivClose) {
                 bottomSheetDialog.dismiss();
-                break;
-        }
+            }
+
 
     }
 

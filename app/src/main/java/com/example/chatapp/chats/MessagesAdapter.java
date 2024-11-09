@@ -294,54 +294,48 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
                 int itemId = menuItem.getItemId();
 
-                switch (itemId)
-                {
+                    if (itemId == R.id.mnuDelete) {
 
-                    case R.id.mnuDelete:
-
-                        if(context instanceof ChatActivity)
-                        {
-                            if(selectedMessageType.equals(Constants.MESSAGE_TYPE_DELETED))
-                                ((ChatActivity)context).clearMessage(selectedMessageId, selectedMessageType);
-                            else ((ChatActivity)context).deleteMessage(selectedMessageId, selectedMessageType, indexOfSelectedMessage);
+                        if (context instanceof ChatActivity) {
+                            if (selectedMessageType.equals(Constants.MESSAGE_TYPE_DELETED))
+                                ((ChatActivity) context).clearMessage(selectedMessageId, selectedMessageType);
+                            else
+                                ((ChatActivity) context).deleteMessage(selectedMessageId, selectedMessageType, indexOfSelectedMessage);
                         }
                         actionMode.finish();
-                        break;
+                    }
 
-                    case R.id.mnuDownload:
+                    else if(itemId == R.id.mnuDownload) {
 
-                        if(context instanceof ChatActivity)
-                            ((ChatActivity)context).downloadFile(selectedMessageId, selectedMessageType, false);
+                        if (context instanceof ChatActivity)
+                            ((ChatActivity) context).downloadFile(selectedMessageId, selectedMessageType, false);
 
                         actionMode.finish();
-                        break;
+                    }
 
-                    case R.id.mnuShare:
+                    else if (itemId == R.id.mnuShare) {
 
-                        if(selectedMessageType.equals(Constants.MESSAGE_TYPE_TEXT))
-                        {
+                        if (selectedMessageType.equals(Constants.MESSAGE_TYPE_TEXT)) {
                             Intent intentShare = new Intent();
                             intentShare.setAction(Intent.ACTION_SEND);
                             intentShare.putExtra(Intent.EXTRA_TEXT, selectedMessage);
                             intentShare.setType("text/plain");
                             context.startActivity(intentShare);
-                        }
-                        else
-                        {
-                            if(context instanceof ChatActivity)
-                                ((ChatActivity)context).downloadFile(selectedMessageId, selectedMessageType, true);
+                        } else {
+                            if (context instanceof ChatActivity)
+                                ((ChatActivity) context).downloadFile(selectedMessageId, selectedMessageType, true);
                         }
 
                         actionMode.finish();
-                        break;
+                    }
 
-                    case R.id.mnuForward:
+                    else if (itemId == R.id.mnuForward) {
 
-                        if(context instanceof ChatActivity)
-                            ((ChatActivity)context).forwardMessage(selectedMessageId, selectedMessage, selectedMessageType, ((ChatActivity) context).openChatUserId);
+                        if (context instanceof ChatActivity)
+                            ((ChatActivity) context).forwardMessage(selectedMessageId, selectedMessage, selectedMessageType, ((ChatActivity) context).openChatUserId);
                         actionMode.finish();
-                        break;
-                }
+                    }
+
 
 
             } else Toast.makeText(context, R.string.no_internet ,Toast.LENGTH_LONG).show();
