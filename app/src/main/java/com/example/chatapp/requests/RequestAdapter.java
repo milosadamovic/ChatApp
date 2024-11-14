@@ -123,8 +123,8 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                                                     String title = "Friend Request Accepted";
                                                                     String message = "Friend request accepted by " + currentUser.getDisplayName();
 
-                                                                    Util.cancelNotifications(context, Constants.NOTIFICATION_TYPE_REQUESTID);
-                                                                    Util.sendNotification(context, title, message, userId,currentUser.getUid(),Constants.NOTIFICATION_TYPE_REPLY);
+                                                                   // Util.cancelNotifications(context, Constants.NOTIFICATION_TYPE_REQUESTID);
+                                                                   // Util.sendNotification(context, title, message, userId,currentUser.getUid(),Constants.NOTIFICATION_TYPE_REPLY);
 
                                                                     holder.pbDecision.setVisibility(View.GONE);
                                                                     holder.btnDenyRequest.setVisibility(View.VISIBLE);

@@ -60,7 +60,6 @@ public class ChatMessagingService extends FirebaseMessagingService {
 
         else {
 
-
                 String title = message.getData().get(Constants.NOTIFICATION_TITLE);
                 String msg = message.getData().get(Constants.NOTIFICATION_MESSAGE);
                 String notificationId = "";

@@ -4,6 +4,7 @@ import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -16,6 +17,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
@@ -387,7 +389,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                                         else if(msgType.equals(Constants.MESSAGE_TYPE_VIDEO))
                                             title = "New Video";
 
-                                        Util.sendNotification(ChatActivity.this, title, msg, chatUserId, currentUserId, Constants.NOTIFICATION_TYPE_MESSAGE);
+                                       // Util.sendNotification(ChatActivity.this, title, msg, chatUserId, currentUserId, Constants.NOTIFICATION_TYPE_MESSAGE);
                                         String lastMessage = (!title.equals("New Message")) ? title : msg;
                                         Util.updateChatDetails(ChatActivity.this, currentUserId, chatUserId,lastMessage, msgType);
                                     }
@@ -477,6 +479,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     public void onClick(View view) {
 
@@ -495,11 +498,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             else if(view.getId() == R.id.ivAttachment) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
                     if (bottomSheetDialog != null)
                         bottomSheetDialog.show();
                 } else {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, 1);
                 }
 
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);

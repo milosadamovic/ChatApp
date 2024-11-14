@@ -53,7 +53,6 @@ public class Util {
         if(networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)))
             return true;
         else return false;
-
     }
 
     public static void updateDeviceToken(Context context, String token)
@@ -159,7 +158,7 @@ public class Util {
 
                     } catch (JSONException e) {
 
-                        Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context,R.string.exception, Toast.LENGTH_SHORT).show();
                     }
 
                 }
@@ -169,7 +168,7 @@ public class Util {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-                Toast.makeText(context, R.string.exception, Toast.LENGTH_SHORT).show();
+                Toast.makeText(context,R.string.exception, Toast.LENGTH_SHORT).show();
 
             }
         });
