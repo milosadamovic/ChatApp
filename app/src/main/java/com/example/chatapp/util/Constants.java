@@ -39,9 +39,6 @@ public class Constants {
     public static final String NOTIFICATION_TYPE_MESSAGEID = "993";
 
 
-    public static final String FIREBASE_KEY = "AAAADM6NPhM:APA91bGO59qrkvCbF1Gjvj2yQZtp_SzpvwDPIqtdhUavk1cOXaOK5oOnLpF0cVhv0uUJD90ZwdVdQ1jyf60XvmIy_30tT0UkEmy5T0RpinrtezRWm98uHvC9vRT0uoakBDNZYn6wJEL_";
-    public static final String SENDER_ID = "55004970515";
-
     public static final String CHANNEL_ID = "chat_app_01";
     public static final String CHANNEL_NAME = "chat_app_notifications";
     public static final String CHANNEL_DESC = "Chat App notifications";
