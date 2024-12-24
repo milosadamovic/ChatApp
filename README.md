@@ -1,6 +1,6 @@
 Description
 
-Developed a scalable Chat application in Java with real-time messaging using Firebase, implementing algorithms for efficient data handling and user synchronization.
+Developed a scalable Chat application for Android mobile phones in Java with real-time messaging using Firebase, implementing algorithms for efficient data handling and user synchronization.
 
 Established bug-free interactions, particularly during high message traffic.
 
